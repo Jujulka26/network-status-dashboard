@@ -1,10 +1,32 @@
-# pnpm is not installed on your system. It needs to be installed globally first.
+# Installation Guide
 
-Solution: Install pnpm using npm (which comes with Node.js):
+## Prerequisites
+* Node.js
 
- npm install -g pnpm
+## 1. Package Manager Setup
+Global installation of `pnpm` via `npm`:
+npm install -g pnpm
 
-Then run:
+## 2. Dependency Installation
+Execution within project root directory:
+pnpm install
 
- pnpm install
- pnpm dev
+### Build script approval (if prompted for sharp):
+pnpm approve-builds
+
+## 3. Server Initialization
+Development server launch:
+pnpm dev
+
+Dashboard access: http://localhost:3000
+
+## 4. Network Access Configuration (Optional)
+Cross-origin configuration for mobile/LAN testing.
+Addition to next.config.mjs:
+
+JavaScript
+const nextConfig = {
+  allowedDevOrigins: ['YOUR_IP_ADDRESS'],
+};
+
+export default nextConfig;
