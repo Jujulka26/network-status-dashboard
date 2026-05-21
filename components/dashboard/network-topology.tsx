@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback, useState } from "react"
+import { useEffect, useRef, useCallback, useMemo, useState } from "react"
 import {
   ReactFlow,
   Background,
@@ -24,13 +24,28 @@ import {
   type Simulation,
   type SimulationNodeDatum,
 } from "d3-force"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
-import { DEVICE_ICON, STATUS_RING } from "./device-ui"
-import { useDashboardPreferences } from "./dashboard-preferences"
+
+type DeviceStatus = "healthy" | "warning" | "critical" | "offline"
+type DeviceType = "access_point" | "switch" | "router" | "server"
+
+const DEVICE_ICON: Record<DeviceType, React.ElementType> = {
+  access_point: Wifi,
+  switch: HardDrive,
+  router: Router,
+  server: Server,
+}
+
+const DEVICE_TYPE_LABEL: Record<DeviceType, string> = {
+  access_point: "Access Point",
+  switch: "Switch",
+  router: "Router",
+  server: "Server",
+}
 
 // Compute a clean tree layout so every node has a designated home
 function computeHomes(floors: FloorData[]): Map<string, { x: number; y: number }> {
@@ -65,17 +80,24 @@ function computeHomes(floors: FloorData[]): Map<string, { x: number; y: number }
   return homes
 }
 
+const STATUS_RING: Record<DeviceStatus, string> = {
+  healthy:  "border-emerald-400 shadow-emerald-400/30",
+  warning:  "border-amber-400  shadow-amber-400/30",
+  critical: "border-red-400    shadow-red-400/30",
+  offline:  "border-slate-500  shadow-slate-500/20",
+}
+
 function DeviceNode({ data, selected }: NodeProps) {
-  const d = data as Pick<Device, "name" | "type" | "status">
-  const Icon = DEVICE_ICON[d.type]
+  const d = data as { name: string; type: DeviceType; status: DeviceStatus }
+  const Icon = DEVICE_ICON[d.type] ?? Server
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing select-none">
+    <div className="flex flex-col items-center gap-1 cursor-pointer active:cursor-grabbing select-none">
       <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
       <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white transition-transform dark:bg-card",
-        selected && "scale-110 ring-2 ring-primary ring-offset-2 ring-offset-background",
-        STATUS_RING[d.status]
+        "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white transition",
+        STATUS_RING[d.status],
+        selected && "ring-2 ring-primary ring-offset-2"
       )}>
         <Icon className="h-4 w-4 text-primary" />
       </div>
@@ -86,6 +108,17 @@ function DeviceNode({ data, selected }: NodeProps) {
 }
 
 const NODE_TYPES = { deviceNode: DeviceNode }
+
+function DetailRow({ label, value }: { label: string; value?: string | number }) {
+  if (value === undefined || value === null || value === "") return null
+
+  return (
+    <div className="flex items-center justify-between gap-3 text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground text-right">{value}</span>
+    </div>
+  )
+}
 
 interface SimNode extends SimulationNodeDatum {
   id: string
@@ -106,7 +139,7 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
       id: device.id,
       type: "deviceNode",
       position: { x: h.x - 20, y: h.y - 20 },
-      data: { ...device },
+      data: { name: device.name, type: device.type, status: device.status },
     })
   })
 
@@ -135,17 +168,9 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
   return { nodes, edges }
 }
 
-export function NetworkTopology({
-  floors,
-  selectedDeviceId,
-  onSelectDevice,
-}: {
-  floors: FloorData[]
-  selectedDeviceId?: string | null
-  onSelectDevice?: (deviceId: string) => void
-}) {
-  const { t } = useDashboardPreferences()
+export function NetworkTopology({ floors }: { floors: FloorData[] }) {
   const [open, setOpen] = useState(false)
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
   useEffect(() => {
     const handler = () => setOpen(true)
@@ -157,6 +182,10 @@ export function NetworkTopology({
   const [{ nodes: initNodes, edges: initEdges }] = useState(() => buildInitialGraph(floors, homes))
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
   const [edges, , onEdgesChange] = useEdgesState(initEdges)
+  const selectedDevice = useMemo<Device | undefined>(
+    () => floors.flatMap(f => f.devices).find(device => device.id === selectedDeviceId),
+    [floors, selectedDeviceId]
+  )
 
   const simRef = useRef<{ sim: Simulation<SimNode, undefined>; simNodes: SimNode[] } | null>(null)
 
@@ -168,7 +197,9 @@ export function NetworkTopology({
 
     const simLinks = initEdges.map(e => ({ source: e.source, target: e.target }))
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sim = forceSimulation<SimNode>(simNodes)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .force("link", (forceLink as any)(simLinks).id((d: SimNode) => d.id).distance(120).strength(0.3))
       .force("charge", forceManyBody<SimNode>().strength(-120))
       .force("collide", forceCollide<SimNode>(38))
@@ -191,16 +222,7 @@ export function NetworkTopology({
 
     simRef.current = { sim, simNodes }
     return () => { sim.stop() }
-  }, [homes, initEdges, initNodes, setNodes])
-
-  useEffect(() => {
-    setNodes((currentNodes) =>
-      currentNodes.map((node) => ({
-        ...node,
-        selected: node.id === selectedDeviceId,
-      }))
-    )
-  }, [selectedDeviceId, setNodes])
+  }, [])
 
   const onNodeDragStart = useCallback((_: React.MouseEvent, node: Node) => {
     const r = simRef.current
@@ -227,6 +249,12 @@ export function NetworkTopology({
     setTimeout(() => { simRef.current?.sim.alphaTarget(0.01) }, 1800)
   }, [])
 
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedDeviceId(node.id)
+  }, [])
+
+  const SelectedIcon = selectedDevice ? DEVICE_ICON[selectedDevice.type] ?? Server : Server
+
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-2">
@@ -234,7 +262,7 @@ export function NetworkTopology({
           <div>
             <CardTitle className="text-base">Network Topology</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {open ? t("dragNodes") : t("clickToExpandTopology")}
+              {open ? "Live device map" : "Click to expand interactive topology"}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -242,18 +270,13 @@ export function NetworkTopology({
               <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
                 {(["healthy", "warning", "critical"] as const).map(s => (
                   <span key={s} className="flex items-center gap-1.5 capitalize">
-                    <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s].split(" ")[0])} />
-                    {t(s)}
+                    <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s as DeviceStatus].split(" ")[0])} />
+                    {s}
                   </span>
                 ))}
               </div>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label={open ? "Collapse topology" : "Expand topology"}
-              onClick={() => setOpen(v => !v)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setOpen(v => !v)}>
               {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
@@ -262,16 +285,17 @@ export function NetworkTopology({
 
       {open && (
         <CardContent className="p-0">
-          <div className="h-[500px] rounded-b-xl overflow-hidden bg-secondary/20">
+          <div className="relative h-[500px] rounded-b-xl overflow-hidden bg-secondary/20">
             <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
+              onNodeClick={onNodeClick}
+              onPaneClick={() => setSelectedDeviceId(null)}
               onNodeDragStart={onNodeDragStart}
               onNodeDrag={onNodeDrag}
               onNodeDragStop={onNodeDragStop}
-              onNodeClick={(_, node) => onSelectDevice?.(node.id)}
               nodeTypes={NODE_TYPES}
               nodesConnectable={false}
               fitView
@@ -282,6 +306,57 @@ export function NetworkTopology({
             >
               <Background variant={BackgroundVariant.Dots} gap={20} size={1.25} color="#94a3b8" />
             </ReactFlow>
+
+            {selectedDevice && (
+              <div className="absolute right-3 top-3 z-10 w-[260px] max-w-[calc(100%-1.5rem)] rounded-lg border border-border bg-card/95 p-4 shadow-lg backdrop-blur">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2">
+                    <div className={cn(
+                      "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 bg-white",
+                      STATUS_RING[selectedDevice.status]
+                    )}>
+                      <SelectedIcon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-sm font-semibold">{selectedDevice.name}</h3>
+                      <p className="text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={() => setSelectedDeviceId(null)}
+                    aria-label="Close device details"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="mb-3">
+                  <span className={cn(
+                    "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize",
+                    selectedDevice.status === "healthy" && "border-emerald-200 bg-emerald-50 text-emerald-700",
+                    selectedDevice.status === "warning" && "border-amber-200 bg-amber-50 text-amber-700",
+                    selectedDevice.status === "critical" && "border-red-200 bg-red-50 text-red-700",
+                    selectedDevice.status === "offline" && "border-slate-200 bg-slate-50 text-slate-700"
+                  )}>
+                    {selectedDevice.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <DetailRow label="Floor" value={selectedDevice.floor} />
+                  <DetailRow label="Zone" value={selectedDevice.zone} />
+                  <DetailRow label="Uptime" value={selectedDevice.uptime} />
+                  <DetailRow label="Clients" value={selectedDevice.clients} />
+                  <DetailRow label="Upload" value={selectedDevice.bandwidth ? `${selectedDevice.bandwidth.up} Mbps` : undefined} />
+                  <DetailRow label="Download" value={selectedDevice.bandwidth ? `${selectedDevice.bandwidth.down} Mbps` : undefined} />
+                  <DetailRow label="CPU" value={selectedDevice.cpu !== undefined ? `${selectedDevice.cpu}%` : undefined} />
+                  <DetailRow label="Memory" value={selectedDevice.memory !== undefined ? `${selectedDevice.memory}%` : undefined} />
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       )}
