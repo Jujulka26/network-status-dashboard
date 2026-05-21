@@ -21,23 +21,16 @@ import {
   forceCollide,
   forceY,
   forceX,
+  type Simulation,
   type SimulationNodeDatum,
 } from "d3-force"
-import { Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import type { FloorData } from "@/lib/network-data"
+import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
-
-type DeviceStatus = "healthy" | "warning" | "critical" | "offline"
-type DeviceType = "access_point" | "switch" | "router" | "server"
-
-const DEVICE_ICON: Record<DeviceType, React.ElementType> = {
-  access_point: Wifi,
-  switch: HardDrive,
-  router: Router,
-  server: Server,
-}
+import { DEVICE_ICON, STATUS_RING } from "./device-ui"
+import { useDashboardPreferences } from "./dashboard-preferences"
 
 // Compute a clean tree layout so every node has a designated home
 function computeHomes(floors: FloorData[]): Map<string, { x: number; y: number }> {
@@ -72,22 +65,16 @@ function computeHomes(floors: FloorData[]): Map<string, { x: number; y: number }
   return homes
 }
 
-const STATUS_RING: Record<DeviceStatus, string> = {
-  healthy:  "border-emerald-400 shadow-emerald-400/30",
-  warning:  "border-amber-400  shadow-amber-400/30",
-  critical: "border-red-400    shadow-red-400/30",
-  offline:  "border-slate-500  shadow-slate-500/20",
-}
-
-function DeviceNode({ data }: NodeProps) {
-  const d = data as { name: string; type: DeviceType; status: DeviceStatus }
-  const Icon = DEVICE_ICON[d.type] ?? Server
+function DeviceNode({ data, selected }: NodeProps) {
+  const d = data as Pick<Device, "name" | "type" | "status">
+  const Icon = DEVICE_ICON[d.type]
 
   return (
     <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing select-none">
       <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
       <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white",
+        "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white transition-transform dark:bg-card",
+        selected && "scale-110 ring-2 ring-primary ring-offset-2 ring-offset-background",
         STATUS_RING[d.status]
       )}>
         <Icon className="h-4 w-4 text-primary" />
@@ -119,7 +106,7 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
       id: device.id,
       type: "deviceNode",
       position: { x: h.x - 20, y: h.y - 20 },
-      data: { name: device.name, type: device.type, status: device.status },
+      data: { ...device },
     })
   })
 
@@ -148,7 +135,16 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
   return { nodes, edges }
 }
 
-export function NetworkTopology({ floors }: { floors: FloorData[] }) {
+export function NetworkTopology({
+  floors,
+  selectedDeviceId,
+  onSelectDevice,
+}: {
+  floors: FloorData[]
+  selectedDeviceId?: string | null
+  onSelectDevice?: (deviceId: string) => void
+}) {
+  const { t } = useDashboardPreferences()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -162,7 +158,7 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
   const [edges, , onEdgesChange] = useEdgesState(initEdges)
 
-  const simRef = useRef<{ sim: ReturnType<typeof forceSimulation>; simNodes: SimNode[] } | null>(null)
+  const simRef = useRef<{ sim: Simulation<SimNode, undefined>; simNodes: SimNode[] } | null>(null)
 
   useEffect(() => {
     const simNodes: SimNode[] = initNodes.map(n => {
@@ -172,9 +168,7 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
 
     const simLinks = initEdges.map(e => ({ source: e.source, target: e.target }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sim = forceSimulation<SimNode>(simNodes)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .force("link", (forceLink as any)(simLinks).id((d: SimNode) => d.id).distance(120).strength(0.3))
       .force("charge", forceManyBody<SimNode>().strength(-120))
       .force("collide", forceCollide<SimNode>(38))
@@ -197,7 +191,16 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
 
     simRef.current = { sim, simNodes }
     return () => { sim.stop() }
-  }, [])
+  }, [homes, initEdges, initNodes, setNodes])
+
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        selected: node.id === selectedDeviceId,
+      }))
+    )
+  }, [selectedDeviceId, setNodes])
 
   const onNodeDragStart = useCallback((_: React.MouseEvent, node: Node) => {
     const r = simRef.current
@@ -231,7 +234,7 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
           <div>
             <CardTitle className="text-base">Network Topology</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {open ? "Drag nodes — physics keeps edges live" : "Click to expand interactive topology"}
+              {open ? t("dragNodes") : t("clickToExpandTopology")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -239,13 +242,18 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
               <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
                 {(["healthy", "warning", "critical"] as const).map(s => (
                   <span key={s} className="flex items-center gap-1.5 capitalize">
-                    <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s as DeviceStatus].split(" ")[0])} />
-                    {s}
+                    <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s].split(" ")[0])} />
+                    {t(s)}
                   </span>
                 ))}
               </div>
             )}
-            <Button variant="ghost" size="sm" onClick={() => setOpen(v => !v)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label={open ? "Collapse topology" : "Expand topology"}
+              onClick={() => setOpen(v => !v)}
+            >
               {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
@@ -263,6 +271,7 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
               onNodeDragStart={onNodeDragStart}
               onNodeDrag={onNodeDrag}
               onNodeDragStop={onNodeDragStop}
+              onNodeClick={(_, node) => onSelectDevice?.(node.id)}
               nodeTypes={NODE_TYPES}
               nodesConnectable={false}
               fitView

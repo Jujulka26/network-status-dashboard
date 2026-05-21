@@ -1,27 +1,30 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import type { BandwidthHistory } from "@/lib/network-data"
+import { useDashboardPreferences } from "./dashboard-preferences"
 
 interface BandwidthChartProps {
   data: BandwidthHistory[]
 }
 
 export function BandwidthChart({ data }: BandwidthChartProps) {
+  const { t } = useDashboardPreferences()
+
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Network Bandwidth (24h)</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t("networkBandwidth24h")}</CardTitle>
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-chart-1" />
-              <span className="text-muted-foreground">Download</span>
+              <span className="text-muted-foreground">{t("download")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-chart-2" />
-              <span className="text-muted-foreground">Upload</span>
+              <span className="text-muted-foreground">{t("upload")}</span>
             </div>
           </div>
         </div>
@@ -68,7 +71,7 @@ export function BandwidthChart({ data }: BandwidthChartProps) {
                 stroke="oklch(0.7 0.15 175)" 
                 fill="url(#downloadGradient)" 
                 strokeWidth={2}
-                name="Download"
+                name={t("download")}
               />
               <Area 
                 type="monotone" 
@@ -76,7 +79,7 @@ export function BandwidthChart({ data }: BandwidthChartProps) {
                 stroke="oklch(0.65 0.18 250)" 
                 fill="url(#uploadGradient)" 
                 strokeWidth={2}
-                name="Upload"
+                name={t("upload")}
               />
             </AreaChart>
           </ResponsiveContainer>
