@@ -150,6 +150,13 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
 
 export function NetworkTopology({ floors }: { floors: FloorData[] }) {
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = () => setOpen(true)
+    window.addEventListener("expand-topology", handler)
+    return () => window.removeEventListener("expand-topology", handler)
+  }, [])
+
   const [homes] = useState(() => computeHomes(floors))
   const [{ nodes: initNodes, edges: initEdges }] = useState(() => buildInitialGraph(floors, homes))
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -93,8 +93,12 @@ function DeviceCard({ device }: { device: Device }) {
   )
 }
 
-function FloorCard({ floor }: { floor: FloorData }) {
+function FloorCard({ floor, expandTrigger }: { floor: FloorData; expandTrigger: number }) {
   const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    if (expandTrigger > 0) setExpanded(true)
+  }, [expandTrigger])
   
   const healthyCount = floor.devices.filter(d => d.status === "healthy").length
   const warningCount = floor.devices.filter(d => d.status === "warning").length
@@ -142,6 +146,14 @@ function FloorCard({ floor }: { floor: FloorData }) {
 }
 
 export function FloorView({ floors }: FloorViewProps) {
+  const [expandTrigger, setExpandTrigger] = useState(0)
+
+  useEffect(() => {
+    const handler = () => setExpandTrigger(t => t + 1)
+    window.addEventListener("expand-floors", handler)
+    return () => window.removeEventListener("expand-floors", handler)
+  }, [])
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -150,7 +162,7 @@ export function FloorView({ floors }: FloorViewProps) {
       </div>
       <div className="space-y-4">
         {floors.map(floor => (
-          <FloorCard key={floor.floor} floor={floor} />
+          <FloorCard key={floor.floor} floor={floor} expandTrigger={expandTrigger} />
         ))}
       </div>
     </div>
