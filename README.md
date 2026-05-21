@@ -1,7 +1,7 @@
 # Installation Guide
 
 ## Prerequisites
-* Node.js
+* Next.js
 
 ## 1. Package Manager Setup
 Global installation of `pnpm` via `npm`:
