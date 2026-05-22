@@ -163,8 +163,8 @@ export function RemoteControlPage() {
                 </div>
                 <Badge variant="outline">{selectedDevice.ipAddress}</Badge>
               </div>
-              <div className="flex min-h-[520px] flex-col bg-[#060a0f] p-4 font-mono text-sm text-emerald-100">
-                <div className="flex-1 space-y-2 overflow-y-auto rounded-md border border-emerald-500/20 bg-black/45 p-4">
+              <div className="flex h-[520px] flex-col bg-[#060a0f] p-4 font-mono text-sm text-emerald-100">
+                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-md border border-emerald-500/20 bg-black/45 p-4">
                   {terminalLines.map((line, index) => (
                     <pre key={`${line}-${index}`} className="whitespace-pre-wrap leading-6">
                       {line}
@@ -173,7 +173,13 @@ export function RemoteControlPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {QUICK_COMMANDS.map((item) => (
-                    <Button key={item} variant="outline" size="sm" onClick={() => runCommand(item)}>
+                    <Button
+                      key={item}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => runCommand(item)}
+                      className="border-emerald-500/30 bg-black text-emerald-100 hover:bg-black hover:text-emerald-100"
+                    >
                       {item}
                     </Button>
                   ))}
