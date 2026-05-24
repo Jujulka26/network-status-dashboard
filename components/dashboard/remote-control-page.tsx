@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_BADGE, STATUS_DOT, STATUS_ICON_TEXT, STATUS_TEXT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_BADGE, STATUS_DOT, STATUS_ICON_TEXT, STATUS_RING, STATUS_TEXT } from "./device-ui"
 import { cn } from "@/lib/utils"
 import type { Device } from "@/lib/network-data"
 
@@ -146,7 +146,9 @@ export function RemoteControlPage() {
 
                       <div className="rounded-lg border border-white/20 bg-background/90 shadow-sm backdrop-blur">
                         <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
-                          <Icon className={cn("h-4 w-4", statusIconClass)} />
+                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm", STATUS_RING[selectedDevice.status])}>
+                            <Icon className={cn("h-4 w-4", statusIconClass)} />
+                          </span>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold">{selectedDevice.name}</p>
                             <p className="truncate text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]} • {selectedDevice.ipAddress}</p>

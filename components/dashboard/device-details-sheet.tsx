@@ -5,7 +5,7 @@ import { Camera, CircleDot, MapPin, Network, ServerCog } from "lucide-react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import type { Device } from "@/lib/network-data"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT, STATUS_ICON_TEXT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT, STATUS_ICON_TEXT, STATUS_RING } from "./device-ui"
 import { useDashboardPreferences } from "./dashboard-preferences"
 import { cn } from "@/lib/utils"
 
@@ -48,7 +48,7 @@ export function DeviceDetailsSheet({
       <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-md">
         <SheetHeader className="border-b border-border p-5">
           <div className="flex items-start gap-3 pr-8">
-            <div className="rounded-lg bg-primary/10 p-2">
+            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm", STATUS_RING[device.status])}>
               <Icon className={cn("h-5 w-5", STATUS_ICON_TEXT[device.status])} />
             </div>
             <div className="min-w-0 flex-1">

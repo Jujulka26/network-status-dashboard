@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT, STATUS_ICON_TEXT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT, STATUS_ICON_TEXT, STATUS_RING } from "./device-ui"
 
 interface FloorViewProps {
   floors: FloorData[]
@@ -67,7 +67,7 @@ function DeviceCard({
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="rounded-lg bg-primary/10 p-2">
+          <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm", STATUS_RING[device.status])}>
             <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[device.status])} />
           </div>
           <div className="min-w-0">
@@ -126,7 +126,7 @@ function DeviceDetailsPanel({
         <section className="space-y-3 rounded-lg border border-border bg-secondary/20 p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
-              <div className="rounded-lg bg-primary/10 p-2">
+              <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm", STATUS_RING[device.status])}>
                 <Icon className={cn("h-5 w-5", STATUS_ICON_TEXT[device.status])} />
               </div>
               <div className="min-w-0">
@@ -226,8 +226,8 @@ function FloorPlan({
               onClick={() => onSelectDevice?.(device.id)}
               className={cn(
                 "absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-background shadow-sm transition-transform hover:scale-110",
-                selected && "scale-110 border-primary ring-2 ring-primary/30",
-                !selected && "border-border"
+                STATUS_RING[device.status],
+                selected && "scale-110 ring-2 ring-primary/30"
               )}
               style={{ left: `${device.location.x}%`, top: `${device.location.y}%` }}
               title={device.name}
