@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
-import { DEVICE_ICON, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT } from "./device-ui"
 
 interface FloorViewProps {
   floors: FloorData[]
@@ -92,6 +92,101 @@ function DeviceCard({
   )
 }
 
+function InfoRow({ label, value }: { label: string; value?: string | number }) {
+  if (value === undefined || value === "") return null
+
+  return (
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-medium">{value}</span>
+    </div>
+  )
+}
+
+function DeviceDetailsPanel({
+  device,
+}: {
+  device?: Device
+}) {
+  const { t } = useDashboardPreferences()
+
+  if (!device) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        {t("noDevicesMatch")}
+      </div>
+    )
+  }
+
+  const Icon = DEVICE_ICON[device.type]
+
+  return (
+    <aside className="rounded-lg border border-border bg-card">
+      <div className="space-y-4 p-4">
+        <section className="space-y-3 rounded-lg border border-border bg-secondary/20 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold">{device.name}</h3>
+                <p className="truncate text-sm text-muted-foreground">
+                  {DEVICE_TYPE_LABEL[device.type]} • {device.ipAddress}
+                </p>
+              </div>
+            </div>
+            <DeviceStatusBadge status={device.status} label={t(device.status)} />
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <div>
+            <h4 className="flex items-center gap-2 text-sm font-semibold">
+              <Camera className="h-4 w-4 text-muted-foreground" />
+              {t("cameraPreview")}
+            </h4>
+            <p className="mt-1 truncate text-xs text-muted-foreground">{device.camera.label}</p>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-border bg-secondary/30">
+            <div className="relative aspect-video">
+              <Image
+                src={device.camera.image}
+                alt={`${device.camera.label} preview`}
+                fill
+                sizes="(max-width: 1024px) 100vw, 350px"
+                className="object-cover opacity-75"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+                <p className="text-sm font-medium">{device.camera.label}</p>
+                <p className="text-xs opacity-80">{device.camera.angle}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="flex items-center gap-2 text-sm font-semibold">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            {t("location")}
+          </h4>
+          <div className="space-y-2 rounded-lg border border-border bg-secondary/20 p-3">
+            <InfoRow label="Floor" value={device.floor} />
+            <InfoRow label="Zone" value={device.zone} />
+            <InfoRow label="Room" value={device.room} />
+            <InfoRow label="Rack" value={device.rack ?? "N/A"} />
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-sm font-semibold">{t("metrics")}</h4>
+          <DeviceMetricGrid device={device} />
+        </section>
+      </div>
+    </aside>
+  )
+}
+
 function FloorPlan({
   floor,
   selectedDeviceId,
@@ -101,11 +196,10 @@ function FloorPlan({
   selectedDeviceId?: string | null
   onSelectDevice?: (deviceId: string) => void
 }) {
-  const { t } = useDashboardPreferences()
   const selectedDevice = floor.devices.find((device) => device.id === selectedDeviceId) ?? floor.devices[0]
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_350px]">
       <div className="relative min-h-[280px] overflow-hidden rounded-lg border border-border bg-secondary/20">
         <div className="absolute inset-4 rounded-md border-4 border-foreground/20 bg-[linear-gradient(90deg,var(--border)_1px,transparent_1px),linear-gradient(0deg,var(--border)_1px,transparent_1px)] bg-[size:24px_24px] opacity-70" />
         <div className="absolute left-[6%] right-[6%] top-[52%] h-[8%] border-y-2 border-foreground/15 bg-background/40" />
@@ -145,38 +239,7 @@ function FloorPlan({
         })}
       </div>
 
-      <div className="rounded-lg border border-border bg-card">
-        <div className="border-b border-border p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold">
-            <Camera className="h-4 w-4 text-muted-foreground" />
-            {t("cameraPreview")}
-          </p>
-          <p className="text-xs text-muted-foreground">{selectedDevice?.camera.label}</p>
-        </div>
-        {selectedDevice && (
-          <div className="space-y-3 p-3">
-            <div className="relative aspect-video overflow-hidden rounded-md bg-secondary">
-              <Image
-                src={selectedDevice.camera.image}
-                alt={`${selectedDevice.camera.label} preview`}
-                fill
-                sizes="(max-width: 1024px) 100vw, 280px"
-                className="object-cover opacity-70"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2 text-xs text-white">
-                {selectedDevice.camera.angle}
-              </div>
-            </div>
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">{selectedDevice.name}</p>
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" />
-                {selectedDevice.room} {selectedDevice.rack ? `• ${selectedDevice.rack}` : ""}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      <DeviceDetailsPanel device={selectedDevice} />
     </div>
   )
 }
@@ -206,9 +269,9 @@ function FloorCard({
   }, [floor.floor, targetFloor])
 
   const healthyCount = floor.devices.filter(d => d.status === "healthy").length
-  const warningCount = floor.devices.filter(d => d.status === "warning").length
-  const criticalCount = floor.devices.filter(d => d.status === "critical").length
-  const overallStatus = criticalCount > 0 ? "critical" : warningCount > 0 ? "warning" : "healthy"
+  const degradedCount = floor.devices.filter(d => d.status === "degraded").length
+  const downCount = floor.devices.filter(d => d.status === "down").length
+  const overallStatus = downCount > 0 ? "down" : degradedCount > 0 ? "degraded" : "healthy"
 
   return (
     <Card id={`floor-${floor.floor}`} className="bg-card border-border scroll-mt-24">
@@ -226,8 +289,8 @@ function FloorCard({
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 text-xs sm:flex">
               {healthyCount > 0 && <span className="text-status-healthy">{healthyCount} {t("healthy").toLowerCase()}</span>}
-              {warningCount > 0 && <span className="text-status-warning">{warningCount} {t("warning").toLowerCase()}</span>}
-              {criticalCount > 0 && <span className="text-status-critical">{criticalCount} {t("critical").toLowerCase()}</span>}
+              {degradedCount > 0 && <span className="text-status-degraded">{degradedCount} {t("degraded").toLowerCase()}</span>}
+              {downCount > 0 && <span className="text-status-down">{downCount} {t("down").toLowerCase()}</span>}
             </div>
             <Button
               variant="ghost"

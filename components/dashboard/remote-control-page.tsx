@@ -11,19 +11,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_DOT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_BADGE, STATUS_DOT, STATUS_TEXT } from "./device-ui"
 import { cn } from "@/lib/utils"
+import type { Device } from "@/lib/network-data"
 
 const QUICK_COMMANDS = ["status", "ping gateway", "show interfaces", "restart service"]
 
-function buildCommandOutput(command: string, deviceName: string, ipAddress: string) {
+function buildCommandOutput(command: string, device: Device, statusLabel: string) {
   const normalized = command.trim().toLowerCase()
   if (!normalized) return ""
-  if (normalized.includes("ping")) return `PING ${ipAddress}: 4 packets transmitted, 4 received, 0% packet loss, avg 8.4 ms`
+  if (normalized.includes("ping")) return `PING ${device.ipAddress}: 4 packets transmitted, 4 received, 0% packet loss, avg 8.4 ms`
   if (normalized.includes("interface")) return "eth0 up 1Gbps full-duplex\nwlan0 up channel 44 clients stable\nmgmt0 up secure tunnel active"
   if (normalized.includes("restart")) return "Service restart queued. Health probe returned OK after 3.2s."
-  if (normalized.includes("status")) return `${deviceName} is online. CPU, memory, and link state are within expected demo thresholds.`
-  return `Command executed on ${deviceName}. Demo remote session returned exit code 0.`
+  if (normalized.includes("status")) return `${device.name} network status: ${statusLabel}. Last probe: ${device.lastSeen}.`
+  return `Command executed on ${device.name}. Demo remote session returned exit code 0.`
 }
 
 export function RemoteControlPage() {
@@ -56,7 +57,7 @@ export function RemoteControlPage() {
 
   function runCommand(nextCommand = command) {
     if (!selectedDevice || !nextCommand.trim()) return
-    const output = buildCommandOutput(nextCommand, selectedDevice.name, selectedDevice.ipAddress)
+    const output = buildCommandOutput(nextCommand, selectedDevice, t(selectedDevice.status))
     setTerminalLines((lines) => [
       ...lines,
       `$ ${nextCommand}`,
@@ -70,6 +71,7 @@ export function RemoteControlPage() {
   }
 
   const Icon = DEVICE_ICON[selectedDevice.type]
+  const statusTextClass = STATUS_TEXT[selectedDevice.status]
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,9 +99,9 @@ export function RemoteControlPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Badge variant="outline" className="justify-center border-status-healthy bg-status-healthy/10 px-3 py-2 text-status-healthy">
-                <CircleDot className="h-3.5 w-3.5" />
-                {t("connected")}
+              <Badge variant="outline" className={cn("justify-center px-3 py-2", STATUS_BADGE[selectedDevice.status])}>
+                <CircleDot className={cn("h-3.5 w-3.5", statusTextClass)} />
+                {t(selectedDevice.status)}
               </Badge>
             </div>
           </div>
@@ -115,7 +117,7 @@ export function RemoteControlPage() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <MousePointer2 className="h-3.5 w-3.5" />
                     <Keyboard className="h-3.5 w-3.5" />
-                    <Wifi className="h-3.5 w-3.5 text-status-healthy" />
+                    <Wifi className={cn("h-3.5 w-3.5", statusTextClass)} />
                   </div>
                 </div>
 

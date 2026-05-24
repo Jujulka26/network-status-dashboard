@@ -17,14 +17,15 @@ export function OverviewStats({ floors }: OverviewStatsProps) {
   const totalBandwidthDown = floors.reduce((sum, f) => sum + f.bandwidth.down, 0)
   
   const healthyDevices = allDevices.filter(d => d.status === "healthy").length
-  const warningDevices = allDevices.filter(d => d.status === "warning").length
-  const criticalDevices = allDevices.filter(d => d.status === "critical").length
+  const degradedDevices = allDevices.filter(d => d.status === "degraded").length
+  const downDevices = allDevices.filter(d => d.status === "down").length
+  const affectedDevices = degradedDevices + downDevices
   
   const stats = [
     {
       title: t("totalDevices"),
       value: allDevices.length,
-      subtitle: `${healthyDevices} ${t("healthy").toLowerCase()}, ${warningDevices} ${t("warning").toLowerCase()}, ${criticalDevices} ${t("critical").toLowerCase()}`,
+      subtitle: `${healthyDevices} ${t("healthy").toLowerCase()}, ${degradedDevices} ${t("degraded").toLowerCase()}, ${downDevices} ${t("down").toLowerCase()}`,
       icon: Server,
       color: "text-primary",
       bgColor: "bg-primary/10"
@@ -47,11 +48,11 @@ export function OverviewStats({ floors }: OverviewStatsProps) {
     },
     {
       title: t("networkHealth"),
-      value: criticalDevices === 0 ? t("operational") : t("issuesDetected"),
-      subtitle: criticalDevices === 0 ? t("allSystemsNormal") : `${criticalDevices} ${t("critical").toLowerCase()} alerts`,
-      icon: criticalDevices === 0 ? CheckCircle : AlertTriangle,
-      color: criticalDevices === 0 ? "text-status-healthy" : "text-status-critical",
-      bgColor: criticalDevices === 0 ? "bg-status-healthy/10" : "bg-status-critical/10"
+      value: affectedDevices === 0 ? t("operational") : t("issuesDetected"),
+      subtitle: affectedDevices === 0 ? t("allSystemsNormal") : `${downDevices} ${t("down").toLowerCase()}, ${degradedDevices} ${t("degraded").toLowerCase()}`,
+      icon: affectedDevices === 0 ? CheckCircle : AlertTriangle,
+      color: affectedDevices === 0 ? "text-status-healthy" : downDevices > 0 ? "text-status-down" : "text-status-degraded",
+      bgColor: affectedDevices === 0 ? "bg-status-healthy/10" : downDevices > 0 ? "bg-status-down/10" : "bg-status-degraded/10"
     },
   ]
 

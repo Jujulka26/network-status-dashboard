@@ -13,6 +13,7 @@ import {
   type NodeProps,
   type Node,
   type Edge,
+  type ReactFlowInstance,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import {
@@ -32,7 +33,7 @@ import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
 
-type DeviceStatus = "healthy" | "warning" | "critical" | "offline"
+type DeviceStatus = "healthy" | "degraded" | "down"
 type DeviceType = "access_point" | "switch" | "router" | "server"
 
 const DEVICE_ICON: Record<DeviceType, React.ElementType> = {
@@ -84,9 +85,8 @@ function computeHomes(floors: FloorData[]): Map<string, { x: number; y: number }
 
 const STATUS_RING: Record<DeviceStatus, string> = {
   healthy:  "border-emerald-400 shadow-emerald-400/30",
-  warning:  "border-amber-400  shadow-amber-400/30",
-  critical: "border-red-400    shadow-red-400/30",
-  offline:  "border-slate-500  shadow-slate-500/20",
+  degraded: "border-amber-400  shadow-amber-400/30",
+  down: "border-red-400    shadow-red-400/30",
 }
 
 function DeviceNode({ data, selected }: NodeProps) {
@@ -180,12 +180,30 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
   const { t } = useDashboardPreferences()
   const [open, setOpen] = useState(false)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
+  const flowRef = useRef<ReactFlowInstance | null>(null)
+  const shouldCenterRef = useRef(false)
+
+  const centerTopology = useCallback(() => {
+    shouldCenterRef.current = true
+
+    const fit = () => {
+      if (!shouldCenterRef.current || !flowRef.current) return
+      flowRef.current.fitView({ padding: 0.18, duration: 500 })
+      shouldCenterRef.current = false
+    }
+
+    window.setTimeout(fit, 80)
+    window.setTimeout(fit, 250)
+  }, [])
 
   useEffect(() => {
-    const handler = () => setOpen(true)
+    const handler = () => {
+      setOpen(true)
+      centerTopology()
+    }
     window.addEventListener("expand-topology", handler)
     return () => window.removeEventListener("expand-topology", handler)
-  }, [])
+  }, [centerTopology])
 
   const [homes] = useState(() => computeHomes(floors))
   const [{ nodes: initNodes, edges: initEdges }] = useState(() => buildInitialGraph(floors, homes))
@@ -276,7 +294,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
           <div className="flex items-center gap-3">
             {open && (
               <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
-                {(["healthy", "warning", "critical"] as const).map(s => (
+                {(["healthy", "degraded", "down"] as const).map(s => (
                   <span key={s} className="flex items-center gap-1.5 capitalize">
                     <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s as DeviceStatus].split(" ")[0])} />
                     {t(s)}
@@ -284,7 +302,16 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                 ))}
               </div>
             )}
-            <Button variant="ghost" size="sm" onClick={() => setOpen(v => !v)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setOpen((current) => {
+                  if (!current) centerTopology()
+                  return !current
+                })
+              }}
+            >
               {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
@@ -304,6 +331,10 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
               onNodeDragStart={onNodeDragStart}
               onNodeDrag={onNodeDrag}
               onNodeDragStop={onNodeDragStop}
+              onInit={(instance) => {
+                flowRef.current = instance
+                if (shouldCenterRef.current) centerTopology()
+              }}
               nodeTypes={NODE_TYPES}
               nodesConnectable={false}
               fitView
@@ -345,9 +376,8 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                   <span className={cn(
                     "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize",
                     selectedDevice.status === "healthy" && "border-emerald-200 bg-emerald-50 text-emerald-700",
-                    selectedDevice.status === "warning" && "border-amber-200 bg-amber-50 text-amber-700",
-                    selectedDevice.status === "critical" && "border-red-200 bg-red-50 text-red-700",
-                    selectedDevice.status === "offline" && "border-slate-200 bg-slate-50 text-slate-700"
+                    selectedDevice.status === "degraded" && "border-amber-200 bg-amber-50 text-amber-700",
+                    selectedDevice.status === "down" && "border-red-200 bg-red-50 text-red-700"
                   )}>
                     {t(selectedDevice.status)}
                   </span>

@@ -40,6 +40,8 @@
   
   /* Status colors - optimized for light backgrounds */
   --status-healthy: oklch(0.5 0.18 145);
+  --status-degraded: oklch(0.65 0.18 70);
+  --status-down: oklch(0.55 0.22 25);
   --status-warning: oklch(0.65 0.18 70);
   --status-critical: oklch(0.55 0.22 25);
   --status-offline: oklch(0.5 0.01 250);
@@ -81,6 +83,8 @@
   
   /* Status colors */
   --status-healthy: oklch(0.7 0.18 145);
+  --status-degraded: oklch(0.8 0.16 85);
+  --status-down: oklch(0.6 0.2 25);
   --status-warning: oklch(0.8 0.16 85);
   --status-critical: oklch(0.6 0.2 25);
   --status-offline: oklch(0.5 0 0);
@@ -126,6 +130,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-status-healthy: var(--status-healthy);
+  --color-status-degraded: var(--status-degraded);
+  --color-status-down: var(--status-down);
   --color-status-warning: var(--status-warning);
   --color-status-critical: var(--status-critical);
   --color-status-offline: var(--status-offline);

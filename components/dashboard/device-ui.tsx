@@ -22,28 +22,31 @@ export const DEVICE_TYPE_LABEL: Record<Device["type"], string> = {
 
 export const STATUS_RING: Record<Device["status"], string> = {
   healthy: "border-emerald-400 shadow-emerald-400/30",
-  warning: "border-amber-400 shadow-amber-400/30",
-  critical: "border-red-400 shadow-red-400/30",
-  offline: "border-slate-500 shadow-slate-500/20",
+  degraded: "border-amber-400 shadow-amber-400/30",
+  down: "border-red-400 shadow-red-400/30",
 }
 
 export const STATUS_DOT: Record<Device["status"], string> = {
   healthy: "bg-status-healthy",
-  warning: "bg-status-warning",
-  critical: "bg-status-critical",
-  offline: "bg-status-offline",
+  degraded: "bg-status-degraded",
+  down: "bg-status-down",
+}
+
+export const STATUS_TEXT: Record<Device["status"], string> = {
+  healthy: "text-status-healthy",
+  degraded: "text-status-degraded",
+  down: "text-status-down",
+}
+
+export const STATUS_BADGE: Record<Device["status"], string> = {
+  healthy: "border-status-healthy text-status-healthy bg-status-healthy/10",
+  degraded: "border-status-degraded text-status-degraded bg-status-degraded/10",
+  down: "border-status-down text-status-down bg-status-down/10",
 }
 
 export function DeviceStatusBadge({ status, label }: { status: Device["status"]; label: string }) {
-  const styles: Record<Device["status"], string> = {
-    healthy: "border-status-healthy text-status-healthy bg-status-healthy/10",
-    warning: "border-status-warning text-status-warning bg-status-warning/10",
-    critical: "border-status-critical text-status-critical bg-status-critical/10",
-    offline: "border-status-offline text-status-offline bg-status-offline/10",
-  }
-
   return (
-    <Badge variant="outline" className={cn("capitalize", styles[status])}>
+    <Badge variant="outline" className={cn("capitalize", STATUS_BADGE[status])}>
       {label}
     </Badge>
   )
