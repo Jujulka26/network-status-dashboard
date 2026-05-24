@@ -106,8 +106,8 @@ export function RemoteControlPage() {
 
           <section className="grid gap-4 xl:h-[calc(100vh-205px)] xl:min-h-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
             <div className="grid gap-4 xl:min-h-0 xl:grid-rows-[minmax(300px,0.95fr)_minmax(0,1fr)]">
-              <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+              <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+                <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
                   <div className="flex items-center gap-2">
                     <Monitor className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold">{t("remoteHome")}</h3>
@@ -178,7 +178,7 @@ export function RemoteControlPage() {
                   </div>
                   <Badge variant="outline">{selectedDevice.ipAddress}</Badge>
                 </div>
-                <div className="flex h-[420px] flex-col bg-[#060a0f] p-3 font-mono text-sm text-emerald-100 xl:h-full">
+                <div className="flex h-[420px] min-h-0 flex-col bg-[#060a0f] p-3 font-mono text-sm text-emerald-100 xl:h-auto xl:flex-1">
                   <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-md border border-emerald-500/20 bg-black/45 p-3">
                     {terminalLines.map((line, index) => (
                       <pre key={`${line}-${index}`} className="whitespace-pre-wrap leading-6">
@@ -186,7 +186,7 @@ export function RemoteControlPage() {
                       </pre>
                     ))}
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-3 flex shrink-0 flex-wrap gap-2">
                     {QUICK_COMMANDS.map((item) => (
                       <Button
                         key={item}
@@ -199,7 +199,7 @@ export function RemoteControlPage() {
                       </Button>
                     ))}
                   </div>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex shrink-0 gap-2">
                     <Input
                       value={command}
                       onChange={(event) => setCommand(event.target.value)}
