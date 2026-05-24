@@ -25,11 +25,12 @@ import {
   type Simulation,
   type SimulationNodeDatum,
 } from "d3-force"
-import { Camera, Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X } from "lucide-react"
+import { Camera, Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X, Wrench } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
+import { useDashboardPreferences } from "./dashboard-preferences"
 
 type DeviceStatus = "healthy" | "warning" | "critical" | "offline"
 type DeviceType = "access_point" | "switch" | "router" | "server"
@@ -176,6 +177,7 @@ interface NetworkTopologyProps {
 }
 
 export function NetworkTopology({ floors }: NetworkTopologyProps) {
+  const { t } = useDashboardPreferences()
   const [open, setOpen] = useState(false)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
@@ -204,10 +206,8 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
 
     const simLinks = initEdges.map(e => ({ source: e.source, target: e.target }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sim = forceSimulation<SimNode>(simNodes)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .force("link", (forceLink as any)(simLinks).id((d: SimNode) => d.id).distance(120).strength(0.3))
+      .force("link", forceLink<SimNode, { source: string; target: string }>(simLinks).id((d) => d.id).distance(120).strength(0.3))
       .force("charge", forceManyBody<SimNode>().strength(-120))
       .force("collide", forceCollide<SimNode>(38))
       // Home attraction — nodes spring back after release
@@ -229,7 +229,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
 
     simRef.current = { sim, simNodes }
     return () => { sim.stop() }
-  }, [])
+  }, [homes, initEdges, initNodes, setNodes])
 
   const onNodeDragStart = useCallback((_: React.MouseEvent, node: Node) => {
     const r = simRef.current
@@ -260,11 +260,8 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
     setSelectedDeviceId(node.id)
   }, [])
 
-  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
-    window.location.assign(`/remote-control?device=${encodeURIComponent(node.id)}`)
-  }, [])
-
   const SelectedIcon = selectedDevice ? DEVICE_ICON[selectedDevice.type] ?? Server : Server
+  const canTroubleshoot = selectedDevice && selectedDevice.status !== "healthy"
 
   return (
     <Card className="bg-card border-border">
@@ -282,7 +279,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                 {(["healthy", "warning", "critical"] as const).map(s => (
                   <span key={s} className="flex items-center gap-1.5 capitalize">
                     <span className={cn("h-2 w-2 rounded-full inline-block border-2", STATUS_RING[s as DeviceStatus].split(" ")[0])} />
-                    {s}
+                    {t(s)}
                   </span>
                 ))}
               </div>
@@ -303,7 +300,6 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onNodeClick={onNodeClick}
-              onNodeDoubleClick={onNodeDoubleClick}
               onPaneClick={() => setSelectedDeviceId(null)}
               onNodeDragStart={onNodeDragStart}
               onNodeDrag={onNodeDrag}
@@ -353,7 +349,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                     selectedDevice.status === "critical" && "border-red-200 bg-red-50 text-red-700",
                     selectedDevice.status === "offline" && "border-slate-200 bg-slate-50 text-slate-700"
                   )}>
-                    {selectedDevice.status}
+                    {t(selectedDevice.status)}
                   </span>
                 </div>
 
@@ -386,6 +382,17 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                   <DetailRow label="CPU" value={selectedDevice.cpu !== undefined ? `${selectedDevice.cpu}%` : undefined} />
                   <DetailRow label="Memory" value={selectedDevice.memory !== undefined ? `${selectedDevice.memory}%` : undefined} />
                 </div>
+
+                {canTroubleshoot && (
+                  <Button
+                    className="mt-4 w-full"
+                    size="sm"
+                    onClick={() => window.location.assign(`/remote-control?device=${encodeURIComponent(selectedDevice.id)}`)}
+                  >
+                    <Wrench className="h-3.5 w-3.5" />
+                    {t("troubleshooting")}
+                  </Button>
+                )}
               </div>
             )}
           </div>

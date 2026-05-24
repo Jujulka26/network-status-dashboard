@@ -24,7 +24,7 @@ export function OverviewStats({ floors }: OverviewStatsProps) {
     {
       title: t("totalDevices"),
       value: allDevices.length,
-      subtitle: `${healthyDevices} ${t("healthy").toLowerCase()}, ${warningDevices} ${t("warning").toLowerCase()}`,
+      subtitle: `${healthyDevices} ${t("healthy").toLowerCase()}, ${warningDevices} ${t("warning").toLowerCase()}, ${criticalDevices} ${t("critical").toLowerCase()}`,
       icon: Server,
       color: "text-primary",
       bgColor: "bg-primary/10"

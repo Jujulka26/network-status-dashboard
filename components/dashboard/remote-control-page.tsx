@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { Activity, CircleDot, Command, HardDrive, Keyboard, Monitor, MousePointer2, Power, Wifi } from "lucide-react"
 import { DashboardHeader } from "./dashboard-header"
@@ -30,8 +30,7 @@ export function RemoteControlPage() {
   const { refreshInterval, t } = useDashboardPreferences()
   const { floors, lastUpdated, refreshNow } = useNetworkData(refreshInterval * 1000)
   const devices = useMemo(() => floors.flatMap((floor) => floor.devices), [floors])
-  const appliedRequestedDeviceRef = useRef(false)
-  const [selectedDeviceId, setSelectedDeviceId] = useState(devices[0]?.id ?? "")
+  const [selectedDeviceId, setSelectedDeviceId] = useState("")
   const selectedDevice = devices.find((device) => device.id === selectedDeviceId) ?? devices[0]
   const [command, setCommand] = useState("")
   const [terminalLines, setTerminalLines] = useState<string[]>([
@@ -41,13 +40,18 @@ export function RemoteControlPage() {
   ])
 
   useEffect(() => {
-    if (appliedRequestedDeviceRef.current) return
+    setSelectedDeviceId((currentDeviceId) => {
+      if (currentDeviceId && devices.some((device) => device.id === currentDeviceId)) {
+        return currentDeviceId
+      }
 
-    const requestedDeviceId = new URLSearchParams(window.location.search).get("device")
-    if (requestedDeviceId && devices.some((device) => device.id === requestedDeviceId)) {
-      setSelectedDeviceId(requestedDeviceId)
-      appliedRequestedDeviceRef.current = true
-    }
+      const requestedDeviceId = new URLSearchParams(window.location.search).get("device")
+      if (requestedDeviceId && devices.some((device) => device.id === requestedDeviceId)) {
+        return requestedDeviceId
+      }
+
+      return devices[0]?.id ?? currentDeviceId
+    })
   }, [devices])
 
   function runCommand(nextCommand = command) {
@@ -72,8 +76,8 @@ export function RemoteControlPage() {
       <DashboardHeader lastUpdated={lastUpdated} floors={floors} onRefresh={refreshNow} />
       <div className="flex">
         <NavSidebar floors={floors} />
-        <main className="flex-1 min-w-0 px-4 py-5 md:px-6 md:py-6">
-          <div className="mb-5 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 md:flex-row md:items-center md:justify-between">
+        <main className="flex-1 min-w-0 px-4 py-4 md:px-6">
+          <div className="mb-4 flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-xl font-semibold">{t("remoteControl")}</h2>
               <p className="text-sm text-muted-foreground">
@@ -81,9 +85,9 @@ export function RemoteControlPage() {
               </p>
             </div>
             <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-              <Select value={selectedDevice.id} onValueChange={setSelectedDeviceId}>
+              <Select value={selectedDeviceId} onValueChange={setSelectedDeviceId}>
                 <SelectTrigger className="w-full bg-background sm:w-[320px]">
-                  <SelectValue />
+                  <SelectValue placeholder={selectedDevice.name} />
                 </SelectTrigger>
                 <SelectContent>
                   {devices.map((device) => (
@@ -100,112 +104,146 @@ export function RemoteControlPage() {
             </div>
           </div>
 
-          <section className="grid gap-4 xl:grid-cols-2">
-            <div className="overflow-hidden rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-semibold">{t("remoteHome")}</h3>
+          <section className="grid gap-4 xl:h-[calc(100vh-205px)] xl:min-h-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
+            <div className="grid gap-4 xl:min-h-0 xl:grid-rows-[minmax(300px,0.95fr)_minmax(0,1fr)]">
+              <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold">{t("remoteHome")}</h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <MousePointer2 className="h-3.5 w-3.5" />
+                    <Keyboard className="h-3.5 w-3.5" />
+                    <Wifi className="h-3.5 w-3.5 text-status-healthy" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <MousePointer2 className="h-3.5 w-3.5" />
-                  <Keyboard className="h-3.5 w-3.5" />
-                  <Wifi className="h-3.5 w-3.5 text-status-healthy" />
+
+                <div className="p-2">
+                  <div className="overflow-hidden rounded-lg border border-border bg-[radial-gradient(circle_at_top_left,var(--primary),transparent_28%),linear-gradient(135deg,var(--secondary),var(--background))]">
+                    <div className="flex items-center justify-between bg-black/40 px-3 py-1 text-xs text-white backdrop-blur">
+                      <span>{selectedDevice.name}</span>
+                      <span suppressHydrationWarning>{lastUpdated.toLocaleTimeString()}</span>
+                    </div>
+
+                    <div className="grid gap-2 p-2">
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {[
+                          { label: "Status", icon: Activity },
+                          { label: "Storage", icon: HardDrive },
+                          { label: "Network", icon: Wifi },
+                          { label: "Power", icon: Power },
+                        ].map(({ label, icon: ItemIcon }) => (
+                          <div key={label} className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-md bg-background/75 p-1.5 text-xs shadow-sm backdrop-blur">
+                            <ItemIcon className="h-4 w-4 text-primary" />
+                            <span>{label}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="rounded-lg border border-white/20 bg-background/90 shadow-sm backdrop-blur">
+                        <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
+                          <Icon className="h-4 w-4 text-primary" />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold">{selectedDevice.name}</p>
+                            <p className="truncate text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]} • {selectedDevice.ipAddress}</p>
+                          </div>
+                        </div>
+                        <div className="grid gap-2 p-2 sm:grid-cols-4">
+                          <InfoTile label="Floor" value={`Floor ${selectedDevice.floor}`} />
+                          <InfoTile label="Room" value={selectedDevice.room} />
+                          <InfoTile label="CPU" value={selectedDevice.cpu !== undefined ? `${selectedDevice.cpu}%` : "N/A"} />
+                          <InfoTile label="Memory" value={selectedDevice.memory !== undefined ? `${selectedDevice.memory}%` : "N/A"} />
+                        </div>
+                        <div className="flex items-center gap-3 px-3 pb-2">
+                          <DeviceStatusBadge status={selectedDevice.status} label={t(selectedDevice.status)} />
+                          <span className="text-xs text-muted-foreground">12 ms • encrypted tunnel</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-black/45 px-3 py-1.5 text-white backdrop-blur">
+                      <span className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT[selectedDevice.status])} />
+                      <span className="text-xs">Remote session active</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="relative min-h-[520px] overflow-hidden rounded-lg border border-border bg-[radial-gradient(circle_at_top_left,var(--primary),transparent_32%),linear-gradient(135deg,var(--secondary),var(--background))]">
-                  <div className="absolute left-0 right-0 top-0 flex items-center justify-between bg-black/40 px-4 py-2 text-xs text-white backdrop-blur">
-                    <span>{selectedDevice.name}</span>
-                    <span suppressHydrationWarning>{lastUpdated.toLocaleTimeString()}</span>
+              <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Command className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold">{t("terminal")}</h3>
                   </div>
-
-                  <div className="absolute left-6 top-16 grid gap-3">
-                    {[
-                      { label: "Status", icon: Activity },
-                      { label: "Storage", icon: HardDrive },
-                      { label: "Network", icon: Wifi },
-                      { label: "Power", icon: Power },
-                    ].map(({ label, icon: ItemIcon }) => (
-                      <div key={label} className="flex w-24 flex-col items-center gap-1 rounded-md bg-background/70 p-3 text-xs shadow-sm backdrop-blur">
-                        <ItemIcon className="h-5 w-5 text-primary" />
-                        <span>{label}</span>
-                      </div>
+                  <Badge variant="outline">{selectedDevice.ipAddress}</Badge>
+                </div>
+                <div className="flex h-[420px] flex-col bg-[#060a0f] p-3 font-mono text-sm text-emerald-100 xl:h-full">
+                  <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-md border border-emerald-500/20 bg-black/45 p-3">
+                    {terminalLines.map((line, index) => (
+                      <pre key={`${line}-${index}`} className="whitespace-pre-wrap leading-6">
+                        {line}
+                      </pre>
                     ))}
                   </div>
-
-                  <div className="absolute right-6 top-16 w-[min(420px,calc(100%-160px))] rounded-lg border border-white/20 bg-background/85 shadow-lg backdrop-blur">
-                    <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm font-semibold">{selectedDevice.name}</p>
-                        <p className="text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]} • {selectedDevice.ipAddress}</p>
-                      </div>
-                    </div>
-                    <div className="grid gap-3 p-4 sm:grid-cols-2">
-                      <InfoTile label="Floor" value={`Floor ${selectedDevice.floor}`} />
-                      <InfoTile label="Room" value={selectedDevice.room} />
-                      <InfoTile label="CPU" value={selectedDevice.cpu !== undefined ? `${selectedDevice.cpu}%` : "N/A"} />
-                      <InfoTile label="Memory" value={selectedDevice.memory !== undefined ? `${selectedDevice.memory}%` : "N/A"} />
-                    </div>
-                    <div className="px-4 pb-4">
-                      <DeviceStatusBadge status={selectedDevice.status} label={t(selectedDevice.status)} />
-                    </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {QUICK_COMMANDS.map((item) => (
+                      <Button
+                        key={item}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => runCommand(item)}
+                        className="border-emerald-500/30 bg-black text-emerald-100 hover:bg-black hover:text-emerald-100"
+                      >
+                        {item}
+                      </Button>
+                    ))}
                   </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 bg-black/45 px-4 py-3 text-white backdrop-blur">
-                    <span className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT[selectedDevice.status])} />
-                    <span className="text-xs">Remote session active • latency 12 ms • encrypted tunnel</span>
-                  </div>
-
-                  <div className="absolute bottom-16 right-6 h-28 w-48 overflow-hidden rounded-lg border border-white/20 bg-black">
-                    <Image src={selectedDevice.camera.image} alt="" fill sizes="192px" className="object-cover opacity-80" />
+                  <div className="mt-2 flex gap-2">
+                    <Input
+                      value={command}
+                      onChange={(event) => setCommand(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") runCommand()
+                      }}
+                      placeholder={t("commandPlaceholder")}
+                      className="border-emerald-500/30 bg-black/50 text-emerald-100 placeholder:text-emerald-100/40"
+                    />
+                    <Button onClick={() => runCommand()}>{t("sendCommand")}</Button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <Command className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-semibold">{t("terminal")}</h3>
+                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">{t("cameraPreview")}</h3>
                 </div>
-                <Badge variant="outline">{selectedDevice.ipAddress}</Badge>
+                <Badge variant="outline">{selectedDevice.camera.label}</Badge>
               </div>
-              <div className="flex h-[520px] flex-col bg-[#060a0f] p-4 font-mono text-sm text-emerald-100">
-                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-md border border-emerald-500/20 bg-black/45 p-4">
-                  {terminalLines.map((line, index) => (
-                    <pre key={`${line}-${index}`} className="whitespace-pre-wrap leading-6">
-                      {line}
-                    </pre>
-                  ))}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {QUICK_COMMANDS.map((item) => (
-                    <Button
-                      key={item}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => runCommand(item)}
-                      className="border-emerald-500/30 bg-black text-emerald-100 hover:bg-black hover:text-emerald-100"
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <Input
-                    value={command}
-                    onChange={(event) => setCommand(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") runCommand()
-                    }}
-                    placeholder={t("commandPlaceholder")}
-                    className="border-emerald-500/30 bg-black/50 text-emerald-100 placeholder:text-emerald-100/40"
+              <div className="h-[520px] p-3 xl:h-[calc(100%-2.375rem)]">
+                <div className="relative h-full overflow-hidden rounded-lg border border-border bg-black">
+                  <Image
+                    src={selectedDevice.camera.image}
+                    alt={`${selectedDevice.camera.label} preview`}
+                    fill
+                    sizes="(min-width: 1280px) 42vw, 100vw"
+                    className="object-cover"
                   />
-                  <Button onClick={() => runCommand()}>{t("sendCommand")}</Button>
+                  <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-black/50 px-4 py-2.5 text-white backdrop-blur">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{selectedDevice.camera.label}</p>
+                      <p className="truncate text-xs text-white/75">{selectedDevice.camera.angle}</p>
+                    </div>
+                    <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", STATUS_DOT[selectedDevice.status])} />
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 grid gap-2 bg-black/55 p-3 text-sm text-white backdrop-blur sm:grid-cols-3">
+                    <InfoTile label="Device" value={selectedDevice.name} />
+                    <InfoTile label="Zone" value={selectedDevice.zone} />
+                    <InfoTile label="Room" value={selectedDevice.room} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -218,9 +256,9 @@ export function RemoteControlPage() {
 
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-secondary/30 p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate text-sm font-medium">{value}</p>
+    <div className="rounded-md border border-border bg-secondary/30 p-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-xs font-medium">{value}</p>
     </div>
   )
 }
