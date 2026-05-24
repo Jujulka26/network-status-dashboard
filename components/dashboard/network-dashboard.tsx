@@ -21,6 +21,16 @@ export function NetworkDashboard() {
 
   function selectDevice(deviceId: string) {
     setSelectedDeviceId(deviceId)
+    const device = allDevices.find((item) => item.id === deviceId)
+    if (!device) return
+
+    window.dispatchEvent(new CustomEvent("expand-floors", { detail: { floor: device.floor } }))
+    window.setTimeout(() => {
+      const el = document.getElementById(`floor-${device.floor}`) ?? document.getElementById("section-floors")
+      if (!el) return
+      const top = el.getBoundingClientRect().top + window.scrollY - 80
+      window.scrollTo({ top, behavior: "smooth" })
+    }, 100)
   }
 
   useEffect(() => {
