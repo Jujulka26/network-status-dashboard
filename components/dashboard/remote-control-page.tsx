@@ -170,8 +170,8 @@ export function RemoteControlPage() {
                 </div>
               </div>
 
-              <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+              <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+                <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
                   <div className="flex items-center gap-2">
                     <Command className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold">{t("terminal")}</h3>
