@@ -15,13 +15,15 @@ import {
 } from "@/components/ui/tooltip"
 import { NavDrawer } from "./nav-drawer"
 import { useDashboardPreferences, type DashboardLanguage, type DashboardTheme } from "./dashboard-preferences"
+import type { FloorData } from "@/lib/network-data"
 
 interface DashboardHeaderProps {
   lastUpdated: Date
+  floors: Pick<FloorData, "floor" | "name" | "shortName">[]
   onRefresh?: () => void
 }
 
-export function DashboardHeader({ lastUpdated, onRefresh }: DashboardHeaderProps) {
+export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHeaderProps) {
   const {
     language,
     setLanguage,
@@ -40,7 +42,7 @@ export function DashboardHeader({ lastUpdated, onRefresh }: DashboardHeaderProps
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="md:hidden">
-              <NavDrawer />
+              <NavDrawer floors={floors} />
             </div>
             <div className="p-2 rounded-lg bg-primary/10">
               <Network className="h-6 w-6 text-primary" />

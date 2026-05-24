@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { Activity, CircleDot, Command, HardDrive, Keyboard, Monitor, MousePointer2, Power, Wifi } from "lucide-react"
 import { DashboardHeader } from "./dashboard-header"
@@ -30,6 +30,7 @@ export function RemoteControlPage() {
   const { refreshInterval, t } = useDashboardPreferences()
   const { floors, lastUpdated, refreshNow } = useNetworkData(refreshInterval * 1000)
   const devices = useMemo(() => floors.flatMap((floor) => floor.devices), [floors])
+  const appliedRequestedDeviceRef = useRef(false)
   const [selectedDeviceId, setSelectedDeviceId] = useState(devices[0]?.id ?? "")
   const selectedDevice = devices.find((device) => device.id === selectedDeviceId) ?? devices[0]
   const [command, setCommand] = useState("")
@@ -38,6 +39,16 @@ export function RemoteControlPage() {
     "Secure demo tunnel established.",
     "Select a device and run a command.",
   ])
+
+  useEffect(() => {
+    if (appliedRequestedDeviceRef.current) return
+
+    const requestedDeviceId = new URLSearchParams(window.location.search).get("device")
+    if (requestedDeviceId && devices.some((device) => device.id === requestedDeviceId)) {
+      setSelectedDeviceId(requestedDeviceId)
+      appliedRequestedDeviceRef.current = true
+    }
+  }, [devices])
 
   function runCommand(nextCommand = command) {
     if (!selectedDevice || !nextCommand.trim()) return
@@ -58,9 +69,9 @@ export function RemoteControlPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader lastUpdated={lastUpdated} onRefresh={refreshNow} />
+      <DashboardHeader lastUpdated={lastUpdated} floors={floors} onRefresh={refreshNow} />
       <div className="flex">
-        <NavSidebar />
+        <NavSidebar floors={floors} />
         <main className="flex-1 min-w-0 px-4 py-5 md:px-6 md:py-6">
           <div className="mb-5 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 md:flex-row md:items-center md:justify-between">
             <div>

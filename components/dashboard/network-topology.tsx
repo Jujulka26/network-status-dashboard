@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react"
+import Image from "next/image"
 import {
   ReactFlow,
   Background,
@@ -24,7 +25,7 @@ import {
   type Simulation,
   type SimulationNodeDatum,
 } from "d3-force"
-import { Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X } from "lucide-react"
+import { Camera, Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
@@ -168,7 +169,13 @@ function buildInitialGraph(floors: FloorData[], homes: Map<string, { x: number; 
   return { nodes, edges }
 }
 
-export function NetworkTopology({ floors }: { floors: FloorData[] }) {
+interface NetworkTopologyProps {
+  floors: FloorData[]
+  selectedDeviceId?: string | null
+  onSelectDevice?: (deviceId: string) => void
+}
+
+export function NetworkTopology({ floors }: NetworkTopologyProps) {
   const [open, setOpen] = useState(false)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
@@ -253,6 +260,10 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
     setSelectedDeviceId(node.id)
   }, [])
 
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    window.location.assign(`/remote-control?device=${encodeURIComponent(node.id)}`)
+  }, [])
+
   const SelectedIcon = selectedDevice ? DEVICE_ICON[selectedDevice.type] ?? Server : Server
 
   return (
@@ -292,6 +303,7 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onNodeClick={onNodeClick}
+              onNodeDoubleClick={onNodeDoubleClick}
               onPaneClick={() => setSelectedDeviceId(null)}
               onNodeDragStart={onNodeDragStart}
               onNodeDrag={onNodeDrag}
@@ -343,6 +355,25 @@ export function NetworkTopology({ floors }: { floors: FloorData[] }) {
                   )}>
                     {selectedDevice.status}
                   </span>
+                </div>
+
+                <div className="mb-3 overflow-hidden rounded-md border border-border bg-secondary/30">
+                  <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                    <Camera className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium">{selectedDevice.camera.label}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{selectedDevice.camera.angle}</p>
+                    </div>
+                  </div>
+                  <div className="relative aspect-video bg-secondary">
+                    <Image
+                      src={selectedDevice.camera.image}
+                      alt={`${selectedDevice.camera.label} preview`}
+                      fill
+                      sizes="260px"
+                      className="object-cover opacity-80"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

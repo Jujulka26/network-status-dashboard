@@ -184,11 +184,13 @@ function FloorPlan({
 function FloorCard({
   floor,
   expandTrigger,
+  targetFloor,
   selectedDeviceId,
   onSelectDevice,
 }: {
   floor: FloorData
   expandTrigger: number
+  targetFloor: { floor: number; version: number } | null
   selectedDeviceId?: string | null
   onSelectDevice?: (deviceId: string) => void
 }) {
@@ -199,13 +201,17 @@ function FloorCard({
     if (expandTrigger > 0) setExpanded(true)
   }, [expandTrigger])
 
+  useEffect(() => {
+    if (targetFloor) setExpanded(targetFloor.floor === floor.floor)
+  }, [floor.floor, targetFloor])
+
   const healthyCount = floor.devices.filter(d => d.status === "healthy").length
   const warningCount = floor.devices.filter(d => d.status === "warning").length
   const criticalCount = floor.devices.filter(d => d.status === "critical").length
   const overallStatus = criticalCount > 0 ? "critical" : warningCount > 0 ? "warning" : "healthy"
 
   return (
-    <Card className="bg-card border-border">
+    <Card id={`floor-${floor.floor}`} className="bg-card border-border scroll-mt-24">
       <CardHeader className={cn("pb-2", compactView && "py-3")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -257,9 +263,19 @@ function FloorCard({
 export function FloorView({ floors, selectedDeviceId, onSelectDevice }: FloorViewProps) {
   const { t } = useDashboardPreferences()
   const [expandTrigger, setExpandTrigger] = useState(0)
+  const [targetFloor, setTargetFloor] = useState<{ floor: number; version: number } | null>(null)
 
   useEffect(() => {
-    const handler = () => setExpandTrigger(t => t + 1)
+    const handler = (event: Event) => {
+      const floor = (event as CustomEvent<{ floor?: number }>).detail?.floor
+
+      if (typeof floor === "number") {
+        setTargetFloor((current) => ({ floor, version: (current?.version ?? 0) + 1 }))
+        return
+      }
+
+      setExpandTrigger(t => t + 1)
+    }
     window.addEventListener("expand-floors", handler)
     return () => window.removeEventListener("expand-floors", handler)
   }, [])
@@ -283,6 +299,7 @@ export function FloorView({ floors, selectedDeviceId, onSelectDevice }: FloorVie
             key={floor.floor}
             floor={floor}
             expandTrigger={expandTrigger}
+            targetFloor={targetFloor}
             selectedDeviceId={selectedDeviceId}
             onSelectDevice={onSelectDevice}
           />

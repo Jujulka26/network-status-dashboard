@@ -63,9 +63,14 @@ export function NetworkDashboard() {
   useEffect(() => {
     const sectionId = window.location.hash.replace("#", "")
     if (!sectionId) return
-    const el = document.getElementById(sectionId)
-    if (!el) return
     window.setTimeout(() => {
+      const floor = sectionId.startsWith("floor-") ? Number(sectionId.replace("floor-", "")) : null
+      if (floor !== null && Number.isFinite(floor)) {
+        window.dispatchEvent(new CustomEvent("expand-floors", { detail: { floor } }))
+      }
+
+      const el = document.getElementById(sectionId)
+      if (!el) return
       const top = el.getBoundingClientRect().top + window.scrollY - 80
       window.scrollTo({ top, behavior: "smooth" })
       if (sectionId === "section-topology") window.dispatchEvent(new CustomEvent("expand-topology"))
@@ -75,10 +80,10 @@ export function NetworkDashboard() {
   
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader lastUpdated={lastUpdated} onRefresh={refreshNow} />
+      <DashboardHeader lastUpdated={lastUpdated} floors={floors} onRefresh={refreshNow} />
 
       <div className="flex">
-      <NavSidebar />
+      <NavSidebar floors={floors} />
       <main className={`flex-1 min-w-0 px-4 py-5 md:px-6 md:py-6 ${compactView ? "space-y-4" : "space-y-6"}`}>
         {/* Overview Statistics */}
         <section id="section-overview" aria-labelledby="overview-heading">
