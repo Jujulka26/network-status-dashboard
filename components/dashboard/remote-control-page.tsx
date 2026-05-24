@@ -108,7 +108,7 @@ export function RemoteControlPage() {
           </div>
 
           <section className="grid gap-4 xl:h-[calc(100vh-205px)] xl:min-h-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
-            <div className="grid gap-4 xl:min-h-0 xl:grid-rows-[minmax(300px,0.95fr)_minmax(0,1fr)]">
+            <div className="grid gap-4 xl:min-h-0 xl:grid-rows-[minmax(215px,0.55fr)_minmax(0,1fr)]">
               <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
                 <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
                   <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export function RemoteControlPage() {
                 </div>
 
                 <div className="p-2">
-                  <div className="overflow-hidden rounded-lg border border-border bg-[radial-gradient(circle_at_top_left,var(--primary),transparent_28%),linear-gradient(135deg,var(--secondary),var(--background))]">
+                  <div className="overflow-hidden rounded-lg border border-border bg-background">
                     <div className="flex items-center justify-between bg-black/40 px-3 py-1 text-xs text-white backdrop-blur">
                       <span>{selectedDevice.name}</span>
                       <span suppressHydrationWarning>{lastUpdated.toLocaleTimeString()}</span>
@@ -137,39 +137,32 @@ export function RemoteControlPage() {
                           { label: "Network", icon: Wifi },
                           { label: "Power", icon: Power },
                         ].map(({ label, icon: ItemIcon }) => (
-                          <div key={label} className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-md bg-background/75 p-1.5 text-xs shadow-sm backdrop-blur">
-                            <ItemIcon className={cn("h-4 w-4", statusIconClass)} />
-                            <span>{label}</span>
+                          <div
+                            key={label}
+                            className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-md border border-primary/25 bg-primary/10 p-1.5 text-xs font-medium shadow-sm ring-1 ring-primary/10 backdrop-blur"
+                          >
+                            <ItemIcon className={cn("h-4 w-4 drop-shadow-sm", statusIconClass)} />
+                            <span className="text-foreground">{label}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="rounded-lg border border-white/20 bg-background/90 shadow-sm backdrop-blur">
-                        <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
+                        <div className="flex items-center gap-3 px-3 py-2">
                           <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm", STATUS_RING[selectedDevice.status])}>
                             <Icon className={cn("h-4 w-4", statusIconClass)} />
                           </span>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold">{selectedDevice.name}</p>
                             <p className="truncate text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]} • {selectedDevice.ipAddress}</p>
                           </div>
-                        </div>
-                        <div className="grid gap-2 p-2 sm:grid-cols-4">
-                          <InfoTile label="Floor" value={`Floor ${selectedDevice.floor}`} />
-                          <InfoTile label="Room" value={selectedDevice.room} />
-                          <InfoTile label="CPU" value={selectedDevice.cpu !== undefined ? `${selectedDevice.cpu}%` : "N/A"} />
-                          <InfoTile label="Memory" value={selectedDevice.memory !== undefined ? `${selectedDevice.memory}%` : "N/A"} />
-                        </div>
-                        <div className="flex items-center gap-3 px-3 pb-2">
+                          <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
+                            <span className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT[selectedDevice.status])} />
+                            <span>12 ms • encrypted tunnel</span>
+                          </div>
                           <DeviceStatusBadge status={selectedDevice.status} label={t(selectedDevice.status)} />
-                          <span className="text-xs text-muted-foreground">12 ms • encrypted tunnel</span>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-black/45 px-3 py-1.5 text-white backdrop-blur">
-                      <span className={cn("h-2.5 w-2.5 rounded-full", STATUS_DOT[selectedDevice.status])} />
-                      <span className="text-xs">Remote session active</span>
                     </div>
                   </div>
                 </div>
@@ -244,7 +237,7 @@ export function RemoteControlPage() {
                     </div>
                     <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", STATUS_DOT[selectedDevice.status])} />
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 grid gap-2 bg-black/55 p-3 text-sm text-white backdrop-blur sm:grid-cols-3">
+                  <div className="absolute inset-x-0 bottom-0 grid gap-2 bg-black/70 p-3 text-sm text-white shadow-[0_-10px_30px_rgba(0,0,0,0.35)] backdrop-blur sm:grid-cols-3">
                     <InfoTile label="Device" value={selectedDevice.name} />
                     <InfoTile label="Zone" value={selectedDevice.zone} />
                     <InfoTile label="Room" value={selectedDevice.room} />
@@ -261,9 +254,9 @@ export function RemoteControlPage() {
 
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-secondary/30 p-2">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="mt-1 truncate text-xs font-medium">{value}</p>
+    <div className="rounded-md border border-white/65 bg-white/12 p-2 shadow-sm backdrop-blur">
+      <p className="text-[11px] font-medium text-white/75">{label}</p>
+      <p className="mt-1 truncate text-xs font-semibold text-white">{value}</p>
     </div>
   )
 }
