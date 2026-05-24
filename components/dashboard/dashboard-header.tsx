@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { HelpCircle, Languages, Monitor, Moon, Network, RefreshCw, Settings, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,7 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHeaderProps) {
+  const [clockTime, setClockTime] = useState(() => new Date())
   const {
     language,
     setLanguage,
@@ -35,6 +37,14 @@ export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHea
     setCompactView,
     t,
   } = useDashboardPreferences()
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setClockTime(new Date())
+    }, 1000)
+
+    return () => window.clearInterval(interval)
+  }, [])
 
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -59,8 +69,12 @@ export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHea
               <span className="text-xs font-medium text-status-healthy">{t("live")}</span>
             </div>
             
-            <div className="hidden md:block text-xs text-muted-foreground" suppressHydrationWarning>
-              {t("updated")}: {lastUpdated.toLocaleTimeString()}
+            <div
+              className="hidden md:block text-xs text-muted-foreground"
+              title={`${t("updated")}: ${lastUpdated.toLocaleTimeString()}`}
+              suppressHydrationWarning
+            >
+              {t("updated")}: {clockTime.toLocaleTimeString()}
             </div>
             
             <TooltipProvider>

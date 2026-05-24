@@ -71,6 +71,33 @@ function device(base: Device): Device {
   return base
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function jitter(value: number, range: number, min: number, max: number) {
+  return clamp(value + Math.floor(Math.random() * range * 2 - range), min, max)
+}
+
+function formatBandwidthTime(date = new Date()) {
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+}
+
+function nextBandwidthPoint(floors: FloorData[]): BandwidthHistory {
+  const upload = floors.reduce((sum, floor) => sum + floor.bandwidth.up, 0)
+  const download = floors.reduce((sum, floor) => sum + floor.bandwidth.down, 0)
+
+  return {
+    time: formatBandwidthTime(),
+    upload: jitter(upload, 90, 200, 1200),
+    download: jitter(download, 220, 700, 2600),
+  }
+}
+
 export function generateMockData() {
   const floors: FloorData[] = [
     {
@@ -174,6 +201,10 @@ export function useNetworkData(refreshIntervalMs = 5000) {
         const newData = { ...prev }
         newData.floors = prev.floors.map(floor => ({
           ...floor,
+          bandwidth: {
+            up: jitter(floor.bandwidth.up, 35, 30, 650),
+            down: jitter(floor.bandwidth.down, 90, 80, 1400),
+          },
           devices: floor.devices.map(device => ({
             ...device,
             clients: device.clients ? Math.max(0, device.clients + Math.floor(Math.random() * 5 - 2)) : undefined,
@@ -182,6 +213,10 @@ export function useNetworkData(refreshIntervalMs = 5000) {
             lastSeen: `${Math.floor(Math.random() * 25 + 5)} seconds ago`,
           }))
         }))
+        newData.bandwidthHistory = [
+          ...prev.bandwidthHistory.slice(1),
+          nextBandwidthPoint(newData.floors),
+        ]
         return newData
       })
       setLastUpdated(new Date())
