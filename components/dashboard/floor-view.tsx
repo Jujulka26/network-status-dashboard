@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceMetricGrid, DeviceStatusBadge, STATUS_DOT, STATUS_ICON_TEXT } from "./device-ui"
 
 interface FloorViewProps {
   floors: FloorData[]
@@ -68,7 +68,7 @@ function DeviceCard({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="rounded-lg bg-primary/10 p-2">
-            <Icon className="h-4 w-4 text-primary" />
+            <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[device.status])} />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{device.name}</p>
@@ -127,7 +127,7 @@ function DeviceDetailsPanel({
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
-                <Icon className="h-5 w-5 text-primary" />
+                <Icon className={cn("h-5 w-5", STATUS_ICON_TEXT[device.status])} />
               </div>
               <div className="min-w-0">
                 <h3 className="truncate text-base font-semibold">{device.name}</h3>
@@ -232,7 +232,7 @@ function FloorPlan({
               style={{ left: `${device.location.x}%`, top: `${device.location.y}%` }}
               title={device.name}
             >
-              <Icon className="h-4 w-4 text-primary" />
+              <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[device.status])} />
               <span className={cn("absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full", STATUS_DOT[device.status])} />
             </button>
           )

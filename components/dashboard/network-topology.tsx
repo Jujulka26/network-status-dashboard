@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
+import { STATUS_ICON_TEXT } from "./device-ui"
 
 type DeviceStatus = "healthy" | "degraded" | "down"
 type DeviceType = "access_point" | "switch" | "router" | "server"
@@ -101,7 +102,7 @@ function DeviceNode({ data, selected }: NodeProps) {
         STATUS_RING[d.status],
         selected && "ring-2 ring-primary ring-offset-2"
       )}>
-        <Icon className="h-4 w-4 text-primary" />
+        <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[d.status])} />
       </div>
       <span className="text-[9px] text-foreground/70 text-center leading-tight max-w-[72px]">{d.name}</span>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
@@ -354,7 +355,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                       "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 bg-white",
                       STATUS_RING[selectedDevice.status]
                     )}>
-                      <SelectedIcon className="h-4 w-4 text-primary" />
+                      <SelectedIcon className={cn("h-4 w-4", STATUS_ICON_TEXT[selectedDevice.status])} />
                     </div>
                     <div className="min-w-0">
                       <h3 className="truncate text-sm font-semibold">{selectedDevice.name}</h3>

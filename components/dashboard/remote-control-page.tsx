@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_BADGE, STATUS_DOT, STATUS_TEXT } from "./device-ui"
+import { DEVICE_ICON, DEVICE_TYPE_LABEL, DeviceStatusBadge, STATUS_BADGE, STATUS_DOT, STATUS_ICON_TEXT, STATUS_TEXT } from "./device-ui"
 import { cn } from "@/lib/utils"
 import type { Device } from "@/lib/network-data"
 
@@ -72,6 +72,7 @@ export function RemoteControlPage() {
 
   const Icon = DEVICE_ICON[selectedDevice.type]
   const statusTextClass = STATUS_TEXT[selectedDevice.status]
+  const statusIconClass = STATUS_ICON_TEXT[selectedDevice.status]
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,7 +118,7 @@ export function RemoteControlPage() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <MousePointer2 className="h-3.5 w-3.5" />
                     <Keyboard className="h-3.5 w-3.5" />
-                    <Wifi className={cn("h-3.5 w-3.5", statusTextClass)} />
+                    <Wifi className={cn("h-3.5 w-3.5", statusIconClass)} />
                   </div>
                 </div>
 
@@ -137,7 +138,7 @@ export function RemoteControlPage() {
                           { label: "Power", icon: Power },
                         ].map(({ label, icon: ItemIcon }) => (
                           <div key={label} className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-md bg-background/75 p-1.5 text-xs shadow-sm backdrop-blur">
-                            <ItemIcon className="h-4 w-4 text-primary" />
+                            <ItemIcon className={cn("h-4 w-4", statusIconClass)} />
                             <span>{label}</span>
                           </div>
                         ))}
@@ -145,7 +146,7 @@ export function RemoteControlPage() {
 
                       <div className="rounded-lg border border-white/20 bg-background/90 shadow-sm backdrop-blur">
                         <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
-                          <Icon className="h-4 w-4 text-primary" />
+                          <Icon className={cn("h-4 w-4", statusIconClass)} />
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold">{selectedDevice.name}</p>
                             <p className="truncate text-xs text-muted-foreground">{DEVICE_TYPE_LABEL[selectedDevice.type]} • {selectedDevice.ipAddress}</p>

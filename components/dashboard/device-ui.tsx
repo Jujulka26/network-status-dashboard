@@ -38,6 +38,12 @@ export const STATUS_TEXT: Record<Device["status"], string> = {
   down: "text-status-down",
 }
 
+export const STATUS_ICON_TEXT: Record<Device["status"], string> = {
+  healthy: "text-primary",
+  degraded: "text-status-degraded",
+  down: "text-status-down",
+}
+
 export const STATUS_BADGE: Record<Device["status"], string> = {
   healthy: "border-status-healthy text-status-healthy bg-status-healthy/10",
   degraded: "border-status-degraded text-status-degraded bg-status-degraded/10",
