@@ -112,12 +112,13 @@ export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHea
                     </DialogDescription>
                   </DialogHeader>
                   <Tabs defaultValue="overview" className="mt-2">
-                    <TabsList className="grid h-auto w-full grid-cols-2 gap-1 md:grid-cols-3">
+                    <TabsList className="grid h-auto w-full grid-cols-2 gap-1 md:grid-cols-4">
                       <TabsTrigger value="overview">{t("dashboardOverview")}</TabsTrigger>
                       <TabsTrigger value="topology">{t("topologyGuide")}</TabsTrigger>
                       <TabsTrigger value="alerts">{t("alertMeanings")}</TabsTrigger>
                       <TabsTrigger value="status">{t("deviceStatus")}</TabsTrigger>
                       <TabsTrigger value="troubleshooting">{t("troubleshooting")}</TabsTrigger>
+                      <TabsTrigger value="glossary">{t("glossary")}</TabsTrigger>
                       <TabsTrigger value="faq">{t("faq")}</TabsTrigger>
                     </TabsList>
                     {[
@@ -126,6 +127,7 @@ export function DashboardHeader({ lastUpdated, floors, onRefresh }: DashboardHea
                       ["alerts", t("helpAlertsBody")],
                       ["status", t("helpStatusBody")],
                       ["troubleshooting", t("helpTroubleshootingBody")],
+                      ["glossary", t("helpGlossaryBody")],
                       ["faq", t("helpFaqBody")],
                     ].map(([value, body]) => (
                       <TabsContent key={value} value={value} className="rounded-lg border border-border bg-secondary/20 p-4 text-sm leading-6 text-muted-foreground">

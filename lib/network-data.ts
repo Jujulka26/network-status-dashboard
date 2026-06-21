@@ -162,7 +162,7 @@ export function generateMockData() {
     { id: "alert-1", type: "warning", message: "High client load detected on AP-Office-A2", deviceId: "ap-202", device: "AP-Office-A2", timestamp: new Date(Date.now() - 5 * 60000), acknowledged: false },
     { id: "alert-2", type: "warning", message: "High CPU usage on SRV-App-01 (78%)", deviceId: "srv-402", device: "SRV-App-01", timestamp: new Date(Date.now() - 15 * 60000), acknowledged: false },
     { id: "alert-3", type: "critical", message: "Uplink error burst on SW-3-Core-01", deviceId: "sw-301", device: "SW-3-Core-01", timestamp: new Date(Date.now() - 3 * 60000), acknowledged: false },
-    { id: "alert-4", type: "warning", message: "Lobby AP throughput dropped after PoE fluctuation", deviceId: "ap-102", device: "AP-Lobby-01", timestamp: new Date(Date.now() - 8 * 60000), acknowledged: false },
+    { id: "alert-4", type: "warning", message: "Lobby AP latency increased after PoE fluctuation", deviceId: "ap-102", device: "AP-Lobby-01", timestamp: new Date(Date.now() - 8 * 60000), acknowledged: false },
     { id: "alert-5", type: "warning", message: "SRV-File-01 storage backup queue is delayed", deviceId: "srv-403", device: "SRV-File-01", timestamp: new Date(Date.now() - 18 * 60000), acknowledged: false },
     { id: "alert-6", type: "info", message: "Scheduled maintenance window in 2 hours", device: "System", timestamp: new Date(Date.now() - 30 * 60000), acknowledged: true },
     { id: "alert-7", type: "info", message: "Firmware update available for AP devices", device: "Multiple APs", timestamp: new Date(Date.now() - 60 * 60000), acknowledged: true },
@@ -172,7 +172,7 @@ export function generateMockData() {
     { id: "event-1", deviceId: "srv-402", title: "Application server review", description: "CPU and memory have remained above normal range during business hours.", timestamp: new Date(Date.now() + 2 * 60 * 60000), status: "scheduled" },
     { id: "event-2", deviceId: "ap-202", title: "Capacity watch", description: "Office AP is handling peak user load; add AP if trend continues.", timestamp: new Date(Date.now() - 25 * 60000), status: "monitoring" },
     { id: "event-3", deviceId: "sw-301", title: "3F switch uplink investigation", description: "Critical uplink error burst detected; technician should inspect fiber patching and redundant path.", timestamp: new Date(Date.now() + 45 * 60000), status: "scheduled" },
-    { id: "event-4", deviceId: "ap-102", title: "Lobby AP PoE check", description: "AP is degraded after a power fluctuation; verify switch port power and cable seating.", timestamp: new Date(Date.now() + 70 * 60000), status: "scheduled" },
+    { id: "event-4", deviceId: "ap-102", title: "Lobby AP PoE check", description: "AP latency increased after a power fluctuation; verify switch port power and cable seating.", timestamp: new Date(Date.now() + 70 * 60000), status: "scheduled" },
     { id: "event-5", deviceId: "srv-403", title: "File server capacity watch", description: "Backup queue and storage usage are above normal; review cleanup policy and backup window.", timestamp: new Date(Date.now() - 12 * 60000), status: "monitoring" },
     { id: "event-6", deviceId: "rt-401", title: "WAN failover test", description: "Primary and secondary WAN failover verified successfully.", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60000), status: "completed" },
   ]

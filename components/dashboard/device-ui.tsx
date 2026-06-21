@@ -3,6 +3,7 @@
 import type { ElementType } from "react"
 import { Cpu, HardDrive, MemoryStick, Router, Server, Thermometer, Users, Wifi, Activity } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Device } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 
@@ -50,11 +51,34 @@ export const STATUS_BADGE: Record<Device["status"], string> = {
   down: "border-status-down text-status-down bg-status-down/10",
 }
 
-export function DeviceStatusBadge({ status, label }: { status: Device["status"]; label: string }) {
-  return (
+export function DeviceStatusBadge({
+  status,
+  label,
+  description,
+}: {
+  status: Device["status"]
+  label: string
+  description?: string
+}) {
+  const badge = (
     <Badge variant="outline" className={cn("capitalize", STATUS_BADGE[status])}>
       {label}
     </Badge>
+  )
+
+  if (!description) return badge
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex cursor-help">
+          {badge}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-64">
+        {description}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 

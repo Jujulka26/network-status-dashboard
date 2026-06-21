@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { AlertTriangle, AlertCircle, Info, Check, Bell } from "lucide-react"
 import type { Alert } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
@@ -13,6 +14,8 @@ interface AlertsPanelProps {
   alerts: Alert[]
   onSelectDevice?: (deviceId: string) => void
 }
+
+type AlertFilter = "all" | "latency" | "down" | "unread"
 
 function getAlertIcon(type: Alert["type"]) {
   switch (type) {
@@ -41,9 +44,25 @@ function formatTimeAgo(date: Date): string {
 
 export function AlertsPanel({ alerts, onSelectDevice }: AlertsPanelProps) {
   const { t } = useDashboardPreferences()
+  const [expanded, setExpanded] = useState(false)
+  const [filter, setFilter] = useState<AlertFilter>("all")
+  const panelRef = useRef<HTMLDivElement>(null)
   const [acknowledgedAlerts, setAcknowledgedAlerts] = useState<Set<string>>(
     new Set(alerts.filter(a => a.acknowledged).map(a => a.id))
   )
+
+  useEffect(() => {
+    if (!expanded) return
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!panelRef.current?.contains(event.target as Node)) {
+        setExpanded(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [expanded])
   
   const unacknowledgedCount = alerts.filter(a => !acknowledgedAlerts.has(a.id)).length
   
@@ -51,16 +70,25 @@ export function AlertsPanel({ alerts, onSelectDevice }: AlertsPanelProps) {
     setAcknowledgedAlerts(prev => new Set([...prev, alertId]))
   }
   
-  const sortedAlerts = [...alerts].sort((a, b) => {
+  const filteredAlerts = alerts.filter((alert) => {
+    if (filter === "all") return true
+    if (filter === "unread") return !acknowledgedAlerts.has(alert.id)
+    if (filter === "down") return alert.type === "critical"
+    return alert.type === "warning"
+  })
+
+  const sortedAlerts = [...filteredAlerts].sort((a, b) => {
     // Unacknowledged first, then by time
     const aAck = acknowledgedAlerts.has(a.id) ? 1 : 0
     const bAck = acknowledgedAlerts.has(b.id) ? 1 : 0
     if (aAck !== bAck) return aAck - bAck
     return b.timestamp.getTime() - a.timestamp.getTime()
   })
+  const visibleAlerts = expanded ? sortedAlerts : sortedAlerts.slice(0, 3)
+  const hiddenCount = Math.max(sortedAlerts.length - visibleAlerts.length, 0)
   
   return (
-    <Card className="bg-card border-border">
+    <Card ref={panelRef} className="flex h-full flex-col bg-card border-border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -74,9 +102,31 @@ export function AlertsPanel({ alerts, onSelectDevice }: AlertsPanelProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-          {sortedAlerts.map(alert => {
+      <CardContent className="flex flex-1 flex-col">
+        <div className="mb-3 flex flex-wrap gap-2">
+          {([
+            ["all", t("all")],
+            ["latency", t("degraded")],
+            ["down", t("down")],
+            ["unread", t("unread")],
+          ] as const).map(([value, label]) => (
+            <Button
+              key={value}
+              type="button"
+              variant={filter === value ? "default" : "outline"}
+              size="sm"
+              className="h-7 rounded-full px-3 text-xs"
+              onClick={() => {
+                setFilter(value)
+                setExpanded(false)
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+        <div className="space-y-3">
+          {visibleAlerts.map(alert => {
             const Icon = getAlertIcon(alert.type)
             const colors = getAlertColor(alert.type)
             const isAcknowledged = acknowledgedAlerts.has(alert.id)
@@ -97,9 +147,16 @@ export function AlertsPanel({ alerts, onSelectDevice }: AlertsPanelProps) {
                     <div className="min-w-0 flex-1 space-y-1">
                       <p className={cn("text-sm font-medium", isAcknowledged && "text-muted-foreground")}>
                         {alert.deviceId ? (
-                          <button type="button" className="text-left hover:underline" onClick={() => onSelectDevice?.(alert.deviceId!)}>
-                            {alert.message}
-                          </button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" className="text-left hover:underline" onClick={() => onSelectDevice?.(alert.deviceId!)}>
+                                {alert.message}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-64">
+                              {t("alertDeviceHelp")}
+                            </TooltipContent>
+                          </Tooltip>
                         ) : (
                           alert.message
                         )}
@@ -112,28 +169,46 @@ export function AlertsPanel({ alerts, onSelectDevice }: AlertsPanelProps) {
                     </div>
                   </div>
                   {!isAcknowledged && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 shrink-0 px-2"
-                      onClick={() => handleAcknowledge(alert.id)}
-                    >
-                      <Check className="h-3 w-3 mr-1" />
-                      <span className="text-xs">{t("ack")}</span>
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 shrink-0 px-2"
+                          onClick={() => handleAcknowledge(alert.id)}
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          <span className="text-xs">{t("ack")}</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-64">
+                        {t("alertAckHelp")}
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               </div>
             )
           })}
           
-          {alerts.length === 0 && (
+          {sortedAlerts.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Info className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">{t("noAlerts")}</p>
             </div>
           )}
         </div>
+        {sortedAlerts.length > 3 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-3 w-full text-xs text-muted-foreground"
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? t("seeLess") : `${t("seeMore")} (${hiddenCount})`}
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

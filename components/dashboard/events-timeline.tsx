@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import { CalendarClock, CheckCircle2, Eye, Wrench } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import type { Device, MaintenanceEvent } from "@/lib/network-data"
 import { useDashboardPreferences } from "./dashboard-preferences"
 
@@ -30,18 +32,36 @@ function formatEventTime(date: Date) {
 
 export function EventsTimeline({ events, devices, onSelectDevice }: EventsTimelineProps) {
   const { t } = useDashboardPreferences()
+  const [expanded, setExpanded] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const sortedEvents = [...events].sort((a, b) => Math.abs(a.timestamp.getTime() - Date.now()) - Math.abs(b.timestamp.getTime() - Date.now()))
+  const visibleEvents = expanded ? sortedEvents : sortedEvents.slice(0, 4)
+  const hiddenCount = Math.max(sortedEvents.length - visibleEvents.length, 0)
+
+  useEffect(() => {
+    if (!expanded) return
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!panelRef.current?.contains(event.target as Node)) {
+        setExpanded(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [expanded])
 
   return (
-    <Card className="bg-card border-border">
-      <CardHeader className="pb-2">
+    <Card ref={panelRef} className="h-full overflow-hidden bg-card border-border">
+      <CardHeader className="border-b border-border bg-secondary/45 pb-3">
         <div className="flex items-center gap-2">
-          <Wrench className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-sm font-medium text-muted-foreground">{t("recentEvents")}</CardTitle>
+          <Wrench className="h-4 w-4 text-primary" />
+          <CardTitle className="text-sm font-semibold text-foreground">{t("recentEvents")}</CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         <div className="space-y-3">
-          {events.map((event) => {
+          {visibleEvents.map((event) => {
             const device = devices.find((item) => item.id === event.deviceId)
             const style = EVENT_STYLE[event.status]
             const Icon = style.icon
@@ -70,6 +90,17 @@ export function EventsTimeline({ events, devices, onSelectDevice }: EventsTimeli
             )
           })}
         </div>
+        {sortedEvents.length > 4 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-3 w-full text-xs text-muted-foreground"
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? t("seeLess") : `${t("seeMore")} (${hiddenCount})`}
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

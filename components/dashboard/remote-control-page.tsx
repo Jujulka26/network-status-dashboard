@@ -110,10 +110,10 @@ export function RemoteControlPage() {
           <section className="grid gap-4 xl:h-[calc(100vh-205px)] xl:min-h-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
             <div className="grid gap-4 xl:min-h-0 xl:grid-rows-[minmax(215px,0.55fr)_minmax(0,1fr)]">
               <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
-                <div className="shrink-0 flex items-center justify-between border-b border-border px-3 py-2">
+                <div className="shrink-0 flex items-center justify-between border-b border-border bg-secondary/45 px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <Monitor className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="text-sm font-semibold">{t("remoteHome")}</h3>
+                    <Monitor className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">{t("remoteHome")}</h3>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <MousePointer2 className="h-3.5 w-3.5" />
@@ -169,10 +169,10 @@ export function RemoteControlPage() {
               </div>
 
               <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
-                <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
+                <div className="flex shrink-0 items-center justify-between border-b border-border bg-secondary/45 px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <Command className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="text-sm font-semibold">{t("terminal")}</h3>
+                    <Command className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">{t("terminal")}</h3>
                   </div>
                   <Badge variant="outline">{selectedDevice.ipAddress}</Badge>
                 </div>
@@ -214,10 +214,10 @@ export function RemoteControlPage() {
             </div>
 
             <div className="min-h-0 overflow-hidden rounded-lg border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-3 py-2">
+              <div className="flex items-center justify-between border-b border-border bg-secondary/45 px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <Monitor className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="text-sm font-semibold">{t("cameraPreview")}</h3>
+                  <Monitor className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">{t("cameraPreview")}</h3>
                 </div>
                 <Badge variant="outline">{selectedDevice.camera.label}</Badge>
               </div>

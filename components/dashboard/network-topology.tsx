@@ -29,6 +29,7 @@ import {
 import { Camera, Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X, Wrench } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
@@ -90,23 +91,40 @@ const STATUS_RING: Record<DeviceStatus, string> = {
   down: "border-red-400    shadow-red-400/30",
 }
 
+function getStatusHelp(t: ReturnType<typeof useDashboardPreferences>["t"], status: DeviceStatus) {
+  if (status === "healthy") return t("statusHealthyHelp")
+  if (status === "degraded") return t("statusLatencyHelp")
+  return t("statusDownHelp")
+}
+
 function DeviceNode({ data, selected }: NodeProps) {
+  const { t } = useDashboardPreferences()
   const d = data as { name: string; type: DeviceType; status: DeviceStatus }
   const Icon = DEVICE_ICON[d.type] ?? Server
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-pointer active:cursor-grabbing select-none">
-      <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
-      <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white transition",
-        STATUS_RING[d.status],
-        selected && "ring-2 ring-primary ring-offset-2"
-      )}>
-        <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[d.status])} />
-      </div>
-      <span className="text-[9px] text-foreground/70 text-center leading-tight max-w-[72px]">{d.name}</span>
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex flex-col items-center gap-1 cursor-pointer active:cursor-grabbing select-none">
+          <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
+          <div className={cn(
+            "w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm bg-white transition",
+            STATUS_RING[d.status],
+            selected && "ring-2 ring-primary ring-offset-2"
+          )}>
+            <Icon className={cn("h-4 w-4", STATUS_ICON_TEXT[d.status])} />
+          </div>
+          <span className="text-[9px] text-foreground/70 text-center leading-tight max-w-[72px]">{d.name}</span>
+          <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-64">
+        <div className="space-y-1">
+          <p className="font-medium">{d.name} • {DEVICE_TYPE_LABEL[d.type]}</p>
+          <p className="text-background/80">{t(d.status)}: {getStatusHelp(t, d.status)}</p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
