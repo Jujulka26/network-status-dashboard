@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button"
 import { Menu, LayoutDashboard, Activity, GitBranch, Building2, Wrench, MonitorUp, ChevronDown } from "lucide-react"
 import type { FloorData } from "@/lib/network-data"
+import { withBasePath } from "@/lib/site-path"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
 
@@ -50,7 +51,7 @@ export function NavDrawer({ floors }: NavDrawerProps) {
       setActive("section-floors")
       setActiveFloor(floor ?? null)
       setOpen(false)
-      window.location.assign(`/#${targetId}`)
+      window.location.assign(withBasePath(`/#${targetId}`))
       return
     }
 
@@ -66,7 +67,7 @@ export function NavDrawer({ floors }: NavDrawerProps) {
       setActive(item.href)
       resetLocationsMenu()
       setOpen(false)
-      window.location.assign(item.href)
+      window.location.assign(withBasePath(item.href))
       return
     }
 
@@ -74,7 +75,7 @@ export function NavDrawer({ floors }: NavDrawerProps) {
       setActive(item.id)
       resetLocationsMenu()
       setOpen(false)
-      window.location.assign(`/#${item.id}`)
+      window.location.assign(withBasePath(`/#${item.id}`))
       return
     }
 

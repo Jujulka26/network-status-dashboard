@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Activity, GitBranch, Building2, Wrench, MonitorUp, ChevronDown } from "lucide-react"
 import type { FloorData } from "@/lib/network-data"
+import { withBasePath } from "@/lib/site-path"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
 
@@ -46,7 +47,7 @@ export function NavSidebar({ floors }: NavSidebarProps) {
     if (pathname !== "/") {
       setActive("section-floors")
       setActiveFloor(floor ?? null)
-      window.location.assign(`/#${targetId}`)
+      window.location.assign(withBasePath(`/#${targetId}`))
       return
     }
 
@@ -60,14 +61,14 @@ export function NavSidebar({ floors }: NavSidebarProps) {
     if (!("id" in item)) {
       setActive(item.href)
       resetLocationsMenu()
-      window.location.assign(item.href)
+      window.location.assign(withBasePath(item.href))
       return
     }
 
     if (pathname !== "/") {
       setActive(item.id)
       resetLocationsMenu()
-      window.location.assign(`/#${item.id}`)
+      window.location.assign(withBasePath(`/#${item.id}`))
       return
     }
 

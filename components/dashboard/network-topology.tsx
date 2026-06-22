@@ -30,6 +30,7 @@ import { Camera, Wifi, Server, Router, HardDrive, ChevronDown, ChevronUp, X, Wre
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { withBasePath } from "@/lib/site-path"
 import type { Device, FloorData } from "@/lib/network-data"
 import { cn } from "@/lib/utils"
 import { useDashboardPreferences } from "./dashboard-preferences"
@@ -436,7 +437,7 @@ export function NetworkTopology({ floors }: NetworkTopologyProps) {
                   <Button
                     className="mt-4 w-full"
                     size="sm"
-                    onClick={() => window.location.assign(`/remote-control?device=${encodeURIComponent(selectedDevice.id)}`)}
+                    onClick={() => window.location.assign(withBasePath(`/remote-control?device=${encodeURIComponent(selectedDevice.id)}`))}
                   >
                     <Wrench className="h-3.5 w-3.5" />
                     {t("troubleshooting")}

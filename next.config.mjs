@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ""
+const staticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === "true"
+
 const nextConfig = {
+  ...(staticExport ? { output: "export" } : {}),
+  ...(basePath ? { basePath, assetPrefix: `${basePath}/`, trailingSlash: true } : {}),
   images: {
     unoptimized: true,
   },
