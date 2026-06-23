@@ -111,7 +111,7 @@ export function NetworkDashboard() {
           <NetworkTopology floors={floors} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} />
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
           <div id="section-floors" aria-labelledby="floors-heading" className="min-w-0">
             <FloorView floors={floors} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} />
           </div>

@@ -320,13 +320,13 @@ function BuildingFloorSelector({
         <span className="text-xs text-muted-foreground">Click a floor</span>
       </div>
       <div className="relative min-h-[520px] bg-[radial-gradient(circle_at_top,var(--secondary),transparent_42%),linear-gradient(180deg,var(--background),var(--secondary))] px-5 py-8">
-        <div className="mx-auto flex max-w-[560px] flex-col-reverse gap-0">
+        <div className="mx-auto flex w-full max-w-[820px] flex-col-reverse gap-0">
           {orderedFloors.reverse().map((floor) => {
           const latencyCount = floor.devices.filter(d => d.status === "degraded").length
           const downCount = floor.devices.filter(d => d.status === "down").length
           const status = downCount > 0 ? "down" : latencyCount > 0 ? "degraded" : "healthy"
           const selected = selectedFloor === floor.floor
-          const offset = (floor.floor - 1) * 14
+          const offset = (floor.floor - 1) * 22
 
           return (
             <Tooltip key={floor.floor}>

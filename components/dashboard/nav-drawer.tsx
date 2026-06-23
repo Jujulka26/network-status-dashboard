@@ -4,7 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu, LayoutDashboard, Activity, GitBranch, Building2, Wrench, MonitorUp, ChevronDown } from "lucide-react"
+import { Menu, LayoutDashboard, Activity, GitBranch, Building2, MonitorUp, ChevronDown } from "lucide-react"
 import type { FloorData } from "@/lib/network-data"
 import { withBasePath } from "@/lib/site-path"
 import { cn } from "@/lib/utils"
@@ -15,7 +15,6 @@ const NAV_ITEMS = [
   { labelKey: "bandwidthAlerts", icon: Activity, id: "section-bandwidth", href: "/" },
   { labelKey: "networkTopology", icon: GitBranch, id: "section-topology", href: "/" },
   { labelKey: "locations", icon: Building2, id: "section-floors", href: "/" },
-  { labelKey: "events", icon: Wrench, id: "section-events", href: "/" },
   { labelKey: "remoteControl", icon: MonitorUp, href: "/remote-control" },
 ] as const
 
