@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { withBasePath } from "@/lib/site-path"
 
 export interface Device {
   id: string
@@ -68,7 +69,10 @@ export interface MaintenanceEvent {
 }
 
 function device(base: Device): Device {
-  return base
+  return {
+    ...base,
+    camera: { ...base.camera, image: withBasePath(base.camera.image) },
+  }
 }
 
 function clamp(value: number, min: number, max: number) {
