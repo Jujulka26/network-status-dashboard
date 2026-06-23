@@ -20,6 +20,8 @@ const EVENT_STYLE = {
   monitoring: { icon: Eye, label: "Monitoring", className: "border-status-warning text-status-warning bg-status-warning/10" },
 } as const
 
+const DEFAULT_VISIBLE_EVENTS = 3
+
 function formatEventTime(date: Date) {
   const diffMs = date.getTime() - Date.now()
   const absMinutes = Math.round(Math.abs(diffMs) / 60000)
@@ -35,7 +37,7 @@ export function EventsTimeline({ events, devices, onSelectDevice }: EventsTimeli
   const [expanded, setExpanded] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const sortedEvents = [...events].sort((a, b) => Math.abs(a.timestamp.getTime() - Date.now()) - Math.abs(b.timestamp.getTime() - Date.now()))
-  const visibleEvents = expanded ? sortedEvents : sortedEvents.slice(0, 4)
+  const visibleEvents = expanded ? sortedEvents : sortedEvents.slice(0, DEFAULT_VISIBLE_EVENTS)
   const hiddenCount = Math.max(sortedEvents.length - visibleEvents.length, 0)
 
   useEffect(() => {
@@ -90,7 +92,7 @@ export function EventsTimeline({ events, devices, onSelectDevice }: EventsTimeli
             )
           })}
         </div>
-        {sortedEvents.length > 4 && (
+        {sortedEvents.length > DEFAULT_VISIBLE_EVENTS && (
           <Button
             type="button"
             variant="ghost"
