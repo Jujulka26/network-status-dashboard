@@ -311,7 +311,7 @@ function BuildingFloorSelector({
   const orderedFloors = [...floors].sort((a, b) => b.floor - a.floor)
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="flex min-h-[570px] flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -319,7 +319,7 @@ function BuildingFloorSelector({
         </div>
         <span className="text-xs text-muted-foreground">Click a floor</span>
       </div>
-      <div className="relative min-h-[520px] bg-[radial-gradient(circle_at_top,var(--secondary),transparent_42%),linear-gradient(180deg,var(--background),var(--secondary))] px-5 py-8">
+      <div className="relative flex min-h-[520px] flex-1 items-center bg-[radial-gradient(circle_at_top,var(--secondary),transparent_42%),linear-gradient(180deg,var(--background),var(--secondary))] px-5 py-8">
         <div className="mx-auto flex w-full max-w-[820px] flex-col-reverse gap-0">
           {orderedFloors.reverse().map((floor) => {
           const latencyCount = floor.devices.filter(d => d.status === "degraded").length
@@ -490,7 +490,7 @@ export function FloorView({ floors, selectedDeviceId, onSelectDevice }: FloorVie
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-lg font-semibold">{t("floorplanCamera")}</h2>
         <p className="text-sm text-muted-foreground">

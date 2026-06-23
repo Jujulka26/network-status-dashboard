@@ -111,11 +111,11 @@ export function NetworkDashboard() {
           <NetworkTopology floors={floors} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} />
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
-          <div id="section-floors" aria-labelledby="floors-heading" className="min-w-0">
+        <section className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+          <div id="section-floors" aria-labelledby="floors-heading" className="min-w-0 h-full">
             <FloorView floors={floors} selectedDeviceId={selectedDeviceId} onSelectDevice={selectDevice} />
           </div>
-          <div id="section-events" aria-labelledby="events-heading" className="min-w-0">
+          <div id="section-events" aria-labelledby="events-heading" className="min-w-0 h-full">
             <h2 id="events-heading" className="sr-only">{t("events")}</h2>
             <EventsTimeline events={maintenanceEvents} devices={allDevices} onSelectDevice={selectDevice} />
           </div>
