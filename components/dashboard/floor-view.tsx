@@ -41,8 +41,8 @@ const FLOOR_ROOMS: Record<number, Array<{ label: string; x: number; y: number; w
   4: [
     { label: "IT Department", x: 8, y: 16, w: 34, h: 32 },
     { label: "Core Rack S1", x: 48, y: 18, w: 20, h: 30 },
-    { label: "Server Rack S2", x: 70, y: 18, w: 18, h: 55 },
-    { label: "Server Room", x: 45, y: 52, w: 43, h: 30 },
+    { label: "Server Rack S2", x: 70, y: 18, w: 18, h: 30 },
+    { label: "Server Room", x: 45, y: 56, w: 43, h: 28 },
   ],
 }
 
